@@ -23,15 +23,5 @@ DB::DB()
              qDebug() << "Folder already exists at" << folderPath;
          }
 
-       // 检查文件夹是否已经存在
-       if (!dir.exists(folderPath)) {
-           // 如果不存在，创建文件夹
-           if (dir.mkdir(folderPath)) {
-               qDebug() << "Folder created successfully."<<folderPath;
-           } else {
-               qDebug() << "Error creating folder.";
-           }
-       } else {
-           qDebug() << "Folder already exists."<<folderPath;
-       }
+
 }
