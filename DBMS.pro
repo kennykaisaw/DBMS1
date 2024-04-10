@@ -19,12 +19,14 @@ SOURCES += \
     db.cpp \
     main.cpp \
     mainwindow.cpp \
-    parser.cpp
+    parser.cpp \
+    table.cpp
 
 HEADERS += \
     db.h \
     mainwindow.h \
-    parser.h
+    parser.h \
+    table.h
 
 FORMS += \
     mainwindow.ui
