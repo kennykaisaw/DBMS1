@@ -2,7 +2,7 @@
 #include <QApplication>
 #include"db.h"
 #include"parser.h"
-
+#include"table.h"
 int main(int argc, char *argv[])
 {
 
@@ -12,7 +12,9 @@ int main(int argc, char *argv[])
     DB db;
     MainWindow w;
     Parser p;
-    p.parserfirst("create database test1db;");
+    p.parserfirst("INSERT INTO employees (id, name, department, salary) VALUES (1, 'John Doe', 'IT', 50000);");
+    Table t;
+
 
 
     w.show();

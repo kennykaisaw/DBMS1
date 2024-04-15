@@ -3,8 +3,6 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QDebug>
-#include"table.h"
-
 
 class DB
 {
@@ -13,6 +11,9 @@ public:
     bool createRuanko();
     bool createUserdb(QString dbname);
     bool usedb(QString db);
+
+    QString currentdb ;
+
 };
 
 #endif // DB_H

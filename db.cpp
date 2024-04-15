@@ -69,5 +69,6 @@ bool DB::createUserdb(QString USERdbName)
 }
  bool DB::usedb(QString db)
  {
-
+    this->currentdb = db;
+     return true;
  }
