@@ -1,17 +1,26 @@
-#include "mainwindow.h"
+﻿#include "widget.h"
+#include"table.h"
 #include <QApplication>
-#include"db.h"
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <QCoreApplication>
+#include <QFile>
+#include <QDataStream>
+#include <QDebug>
+
+
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication a(argc, argv);
+    Table b("tablesss") ;
+    b
+    .test();
 
-    QApplication a(argc, argv);
 
 
-    DB db;
-    MainWindow w;
 
-    w.show();
-
-    return a.exec();
 }
+
