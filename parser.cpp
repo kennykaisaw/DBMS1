@@ -53,54 +53,28 @@ QString Parser::parserfirst( QString text)
         qDebug() << "No match found.";
     }
 
-
-
     QRegularExpressionMatch match_insertinto= regex_insertinto.match(text);
 
    if (match_insertinto.hasMatch()) {
-
+       // Retrieve the matched QString
        QString matchedString = match_insertinto.captured();
        QStringList words = matchedString.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-       //get table name
-       QString tablename = words[2];
+//       for (const QString& word : words) {
+//              qDebug() << word<<endl;
+//          }
         QRegularExpression regex_presenthesis("\\([^\\)]+\\)");
-        QRegularExpressionMatchIterator matchIterator = regex_presenthesis.globalMatch(matchedString);
-
-        QString attribute[2];
-
-        if  (!matchIterator.hasNext())
-        {
-             qDebug() << "error" ;
-        }
-            for(int i=0;i<2;i++)
+        QRegularExpressionMatchIterator matchIterator = regex_presenthesis.globalMatch("INSERT INTO employees (id, name, department, salary) VALUES (1, 'John Doe', 'IT', 50000);");
+         while  (matchIterator.hasNext())
          {
              QRegularExpressionMatch match = matchIterator.next();
-                     QString matchedText = match.captured(0);
-                     matchedText.remove(0,1);
-                     matchedText.remove(matchedText.length()-1,1);
-                     //1, 'John Doe', 'IT', 50000 get every word without ,
-
-                     QRegularExpression regex("\\b\\w+\\b");
-                     QRegularExpressionMatchIterator matchIterator = regex.globalMatch(matchedText);
-                     while (matchIterator.hasNext()) {
-                             QRegularExpressionMatch match = matchIterator.next();
-                             QString word = match.captured(0);
-                             attribute[i].append(word);
-                             attribute[i].append("|");
-                         }
-
-
+                     QString matchedText = match.captured(0); // Captured group 0: entire matched substring
+                     qDebug() << "Match found:" << matchedText;
          }
-            attribute[0].remove(attribute[0].size()-1,1);
-             attribute[1].remove(attribute[1].size()-1,1);
-              qDebug() <<tablename;
-             qDebug() <<attribute[0];
-              qDebug() <<attribute[1];
 
 
 
 
-
+       qDebug() << "Match found:" << matchedString;
    } else {
        qDebug() << "No match found.";
    }
