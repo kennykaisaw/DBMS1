@@ -54,54 +54,6 @@ QString Parser::parserfirst( QString text)
     }
 
 
-    //insertinto
-    QRegularExpressionMatch match_insertinto= regex_insertinto.match(text);
-
-   if (match_insertinto.hasMatch()) {
-
-       QString matchedString = match_insertinto.captured();
-       QStringList words = matchedString.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-       //get table name
-       QString tablename = words[2];
-        QRegularExpression regex_presenthesis("\\([^\\)]+\\)");
-        QRegularExpressionMatchIterator matchIterator = regex_presenthesis.globalMatch(matchedString);
-
-        QString attribute[2];
-
-        if  (!matchIterator.hasNext())
-        {
-             qDebug() << "error" ;
-        }
-            for(int i=0;i<2;i++)
-         {
-             QRegularExpressionMatch match = matchIterator.next();
-                     QString matchedText = match.captured(0);
-                     matchedText.remove(0,1);
-                     matchedText.remove(matchedText.length()-1,1);
-                     //1, 'John Doe', 'IT', 50000 get every word without ,
-
-                     QRegularExpression regex("\\b\\w+\\b");
-                     QRegularExpressionMatchIterator matchIterator = regex.globalMatch(matchedText);
-                     while (matchIterator.hasNext()) {
-                             QRegularExpressionMatch match = matchIterator.next();
-                             QString word = match.captured(0);
-                             attribute[i].append(word);
-                             attribute[i].append("|");
-                         }
-
-
-         }
-            attribute[0].remove(attribute[0].size()-1,1);
-             attribute[1].remove(attribute[1].size()-1,1);
-              qDebug() <<tablename;
-             qDebug() <<attribute[0];
-              qDebug() <<attribute[1];
-
-
-
-
-
-
    } else {
        qDebug() << "No match found.";
    }

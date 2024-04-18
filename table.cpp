@@ -1,4 +1,6 @@
-#include "table.h"
+
+
+﻿#include "table.h"
 static const string DBadd="D:\\testsssbin\\";
 Table::Table(const string& tableName):tableName(tableName)
 {
@@ -296,3 +298,5 @@ bool Table::readFromFile(const string& tableName)
     }
     return true;
 }
+
+
