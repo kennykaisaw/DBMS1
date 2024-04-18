@@ -128,7 +128,8 @@ QString Parser::parserfirst( QString text)
                  //get column name,type,constraint
                   QStringList words = matchedString.split(QRegExp("\\s+"), QString::SkipEmptyParts);
                   QString columnname = words.at(0);
-                   QString type = words.at(1);
+                  QString type = words.at(1);
+                  
 
                  qDebug() << "Matched String:" << matchedString;
              }
