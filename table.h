@@ -1,3 +1,4 @@
+
 ﻿#ifndef TABLE_H
 #define TABLE_H
 #include <QFile>
@@ -66,3 +67,4 @@ public:
 };
 
 #endif // TABLE_H
+

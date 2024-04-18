@@ -19,12 +19,14 @@ SOURCES += \
     db.cpp \
     main.cpp \
     mainwindow.cpp \
-    parser.cpp
+    parser.cpp \
+    table.cpp
 
 HEADERS += \
     db.h \
     mainwindow.h \
-    parser.h
+    parser.h \
+    table.h
 
 FORMS += \
     mainwindow.ui
@@ -33,3 +35,7 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    ../新建查询.png \
+    ../连接.png

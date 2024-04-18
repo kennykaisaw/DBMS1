@@ -1,26 +1,25 @@
-﻿#include "widget.h"
-#include"table.h"
+
+#include "mainwindow.h"
 #include <QApplication>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <QCoreApplication>
-#include <QFile>
-#include <QDataStream>
-#include <QDebug>
-
-
-
+#include"db.h"
+#include"parser.h"
+#include"table.h"
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
-    Table b("tablesss") ;
-    b
-    .test();
+
+    QApplication a(argc, argv);
+
+
+    DB db;
+    MainWindow w;
+    Parser p;
+    p.parserfirst("INSERT INTO employees (id, name, department, salary) VALUES (1, 'John Doe', 'IT', 50000);");
+//    Table t;
 
 
 
+    w.show();
 
+    return a.exec();
 }
 
