@@ -9,6 +9,7 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include"db.h"
 using namespace std;
 
 
@@ -85,8 +86,14 @@ private:
     }//！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！这个没写呢！！！！！！！！！
     void checkLines(string& in,checkLines_mode mode=checkLines_mode::LINE);//将in的内容放在this_line中进行操作
 public:
-    Table(const string& tableName);//已存在表构造函数
+    //kenny
+    Table(const string& tableName,DB * db);//已存在表构造函数
     Table(const vector<tableRows>& newTable,const string& tableName);//创建表构造函数
+    //kenny
+     Table(const vector<tableRows>& newTable,const string& tableName,DB * db);//表构造函数，需要db
+
+    DB *db;
+    //kenny
     ~Table();
     void test();
 

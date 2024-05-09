@@ -25,7 +25,8 @@
 #include <QPushButton>
 
 #include <QMainWindow>
-
+#include"db.h"
+#include "parser.h"
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -61,6 +62,9 @@ private:
     QPushButton *pushButtonAutoDo;
     QPushButton *pushButtonModel;
     QPushButton *pushButtonPictureExcel;
+    //需要一个一开始就初始化的db对象
+     DB *db = new DB();
+     //Parser *p = new Parser(*db);
 
 private slots:
     /* 声明两个槽函数，响应按钮点击响应的事件 */

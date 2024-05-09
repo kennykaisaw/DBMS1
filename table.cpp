@@ -1,8 +1,11 @@
 #include "table.h"
 static const string DBadd="D:\\testsssbin\\";
-Table::Table(const string& tableName):tableName(tableName)
+//static const string DBadd=;
+//kenny
+Table::Table(const string& tableName,DB * db):tableName(tableName),db(db)
 {
-    add=DBadd+tableName;
+    string dbadd = db->CurrentDbPath.toStdString();
+    add=dbadd+tableName;
     //未找到该表
     if(!readFromFile(tableName)) cerr<<"Error finding tabel."<<endl;
     line_num=lines.size();
@@ -10,6 +13,20 @@ Table::Table(const string& tableName):tableName(tableName)
     for (const auto& str : rows)
         row_num++;
 }
+
+//kenny
+Table::Table(const vector<tableRows>& newTable,const string& tableName,DB * db):tableName(tableName),rows(newTable),db(db)
+{
+    string dbadd = db->CurrentDbPath.toStdString();
+    add=dbadd+tableName;
+    CreateTable(rows,tableName);
+    line_num=0;
+    //rows=newTable;
+    row_num=0;
+    for (const auto& str : rows)
+        row_num++;
+}
+//kenny
 
 Table::Table(const vector<tableRows>& newTable,const string& tableName):tableName(tableName),rows(newTable)
 {
@@ -187,7 +204,7 @@ bool Table::CreateTable(const vector<tableRows>& newTable,const string& tableNam
 {
     QDir dir;
     //要改成常量
-    QString tableDirPath = QString::fromStdString(DBadd+tableName);
+    QString tableDirPath = QString::fromStdString(add);
     string tableDirPath1=DBadd+tableName;
     //创建表文件夹,文件夹内存放表相关信息文件
     if (!dir.exists(tableDirPath))
@@ -330,7 +347,7 @@ bool Table::readFromFile(const string& tableName)
     const char delimiter = '\n';
     QDir dir;
     //要改成常量
-    QString tableDirPath = QString::fromStdString(DBadd+tableName);
+    QString tableDirPath = QString::fromStdString(add);
     //表不存在返回false
     if (!dir.exists(tableDirPath))
     {

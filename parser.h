@@ -8,9 +8,13 @@
 class Parser
 {
 public:
+    Parser(DB *db);
     Parser();
     QString parserfirst(QString text);
     QString parserSecond();
+
+
+    DB *db;
 };
 
 #endif // PARSER_H

@@ -4,8 +4,6 @@ DB::DB()
 {
 
 
-
-
 }
   //系统数据库，不能删
 bool DB::createRuanko()
@@ -14,7 +12,7 @@ bool DB::createRuanko()
     QDir dir;
 
     // 指定要创建的文件夹的绝对路径（Windows示例）,ruanko是要创建的文件夹
-       QString SYSTEMfolderPath = "D:/program/QT/DBMS/Ruanko";
+        this->SYSTEMfolderPath = "D:/program/QT/DBMS/Ruanko";
 
 
 
@@ -22,13 +20,15 @@ bool DB::createRuanko()
              // 如果不存在，创建文件夹
              if (dir.mkpath(SYSTEMfolderPath)) {
                  qDebug() << "Folder created successfully at" << SYSTEMfolderPath;
+
                  return true;
              } else {
                  qDebug() << "Error creating folder.";
                  return false;
              }
          } else {
-             qDebug() << "Folder already exists at" << SYSTEMfolderPath;
+             qDebug() << "Ruanko already exists at" << SYSTEMfolderPath;
+
               return false;
          }
 
@@ -45,7 +45,7 @@ bool DB::createUserdb(QString USERdbName)
       //std::cin>>USERdbName;
 
    // 指定要创建的文件夹的绝对路径（Windows示例）
-      QString currentdbPath = "D:/program/QT/DBMS";
+      QString currentdbPath = SYSTEMfolderPath;
 
       // 拼接文件夹的完整路径
          QString USERdbPath = currentdbPath + QDir::separator() + USERdbName;
@@ -56,6 +56,7 @@ bool DB::createUserdb(QString USERdbName)
             // 如果不存在，创建文件夹
             if (dir.mkpath(USERdbPath)) {
                 qDebug() << "Folder created successfully at" << USERdbPath;
+
                 return true;
             } else {
                 qDebug() << "Error creating folder.";
@@ -69,6 +70,55 @@ bool DB::createUserdb(QString USERdbName)
 }
  bool DB::usedb(QString db)
  {
-    this->currentdb = db;
-     return true;
+     QDir dir;
+     if (dir.exists(SYSTEMfolderPath+ QDir::separator()+db))
+     {
+         this->CurrentDbPath = SYSTEMfolderPath+ QDir::separator()+db;
+         qDebug() << "use"<<db<<"successfully";
+         return true;
+     }
+     else
+     {
+         qDebug() << "not exist this database";
+         return false;
+     }
  }
+ bool DB::selectdatabase()
+ {
+      qDebug() << this->CurrentDbPath;
+      return true;
+ }
+ bool DB::showdbs()
+ {
+
+         QString folderPath = "D:/program/QT/DBMS/Ruanko";
+
+         QDir dir(folderPath);
+
+         // 获取指定文件夹下的所有文件和文件夹的名称列表
+             QStringList entryList = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+
+             // 遍历列表，找出所有文件夹的名称
+
+             for (const QString &entry : entryList) {
+                 // 构造文件夹路径
+                 QString entryPath = folderPath + "/" + entry;
+
+                 // 创建 QFileInfo 对象
+                 QFileInfo fileInfo(entryPath);
+
+                 // 判断是否是文件夹
+                 if (fileInfo.isDir()) {
+                     // 添加文件夹名称到列表中
+                     dbs.append(entry);
+                 }
+             }
+
+
+     for(int i = 0; i < dbs.size(); ++i) {
+            qDebug() << dbs[i];
+        }
+     return true;
+
+ }
+

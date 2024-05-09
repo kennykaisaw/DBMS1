@@ -11,8 +11,12 @@ public:
     bool createRuanko();
     bool createUserdb(QString dbname);
     bool usedb(QString db);
+    bool showdbs();
+    bool selectdatabase();
 
-    QString currentdb ;
+    QString SYSTEMfolderPath="D:/program/QT/DBMS/Ruanko";
+    QString CurrentDbPath="D:/program/QT/DBMS/Ruanko" ;
+    QStringList dbs;
 
 };
 

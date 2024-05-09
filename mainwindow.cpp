@@ -188,6 +188,9 @@ MainWindow::MainWindow(QWidget *parent)
     QPixmap pixmap12("C:\\Users\\Lucas\\Desktop\\DBMS1-master\\materials\\图表.png");
     label12->setPixmap(pixmap12);
     label12->setScaledContents(true);
+    //k
+    db->createRuanko();
+    //k
 
 
     /* 信号槽连接 */
@@ -202,6 +205,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    delete db;
 }
 
 void MainWindow::pushButtonSelectAllClicked()
@@ -217,7 +221,8 @@ void MainWindow::pushButtonSelectAllClicked()
 
 void MainWindow::pushButtonDownloadAllClicked()
 {
-    Parser p;
+    Parser p(db);
+
     /* 设置焦点为textEdit */
     textEdit->setFocus();
     /* 判断文本编辑框内容是否为空，不为空则全选 */
