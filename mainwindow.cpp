@@ -13,6 +13,7 @@
 //    delete ui;
 //}
 #include "mainwindow.h"
+#include "parser.h"
 #include <QDebug>
 #include <QString>
 #include <QLabel>
@@ -216,6 +217,7 @@ void MainWindow::pushButtonSelectAllClicked()
 
 void MainWindow::pushButtonDownloadAllClicked()
 {
+    Parser p;
     /* 设置焦点为textEdit */
     textEdit->setFocus();
     /* 判断文本编辑框内容是否为空，不为空则全选 */
@@ -223,6 +225,7 @@ void MainWindow::pushButtonDownloadAllClicked()
         /* 保存 */
         // 提取QTextEdit中的纯文本内容
         QString content = textEdit->toPlainText();
+        p.parserfirst(content);
         qDebug() << content;
         textEdit->clear();
     }

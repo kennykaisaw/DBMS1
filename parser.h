@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QRegularExpression>
 #include"db.h"
+#include"table.h"
 
 class Parser
 {
