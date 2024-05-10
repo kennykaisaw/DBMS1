@@ -24,7 +24,7 @@ QString Parser::parserfirst(QString text)
     QRegularExpression regex_alter("\\balter\\b", QRegularExpression::CaseInsensitiveOption);
     QRegularExpression regex_show("\\bshow\\b", QRegularExpression::CaseInsensitiveOption);
     QRegularExpression regex_grant("\\bgrant\\b", QRegularExpression::CaseInsensitiveOption);
-    //QRegularExpression regex_use("\\buse\\b", QRegularExpression::CaseInsensitiveOption);
+
     QRegularExpression regex_select("\\bselect\\s+\\S+\\s+from\\s+\\w+.*;", QRegularExpression::CaseInsensitiveOption);
 
 
@@ -58,7 +58,7 @@ QString Parser::parserfirst(QString text)
         qDebug() << "Match found:" << matchedString;
     }
 
-    //showdatabases
+    //showdatabases;
     QRegularExpressionMatch match_showdatabases = regex_showdatabases.match(text);
 
     if (match_showdatabases.hasMatch())
@@ -67,7 +67,7 @@ QString Parser::parserfirst(QString text)
         qDebug() << "Match found:" << matchedString;
         db->showdbs();
     }
-    //selectdatabase()
+    //selectdatabase();
     QRegularExpressionMatch match_selectdatabase = regex_selectdatabase.match(text);
 
     if (match_selectdatabase.hasMatch())
@@ -76,7 +76,7 @@ QString Parser::parserfirst(QString text)
         qDebug() << "Match found:" << matchedString;
        db->selectdatabase();
     }
-    //use dbname
+    //use dbname;
     QRegularExpressionMatch match_use = regex_use.match(text);
 
     if (match_use.hasMatch())
@@ -92,7 +92,7 @@ QString Parser::parserfirst(QString text)
     }
 
 
-
+    //drop;
     QRegularExpressionMatch match_drop = regex_drop.match(text);
     if (match_drop.hasMatch())
     {
@@ -113,7 +113,7 @@ QString Parser::parserfirst(QString text)
         qDebug() << "Match found:" << matchedString;
     }
 
-
+    //delete;
     QRegularExpressionMatch match_delete = regex_delete.match(text);
     if (match_delete.hasMatch()) {
         // Retrieve the matched QString
