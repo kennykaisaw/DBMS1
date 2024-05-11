@@ -1,12 +1,13 @@
 #include "table.h"
-//static const string DBadd="D:\\testsssbin\\";
+static const string DBadd="D:\\testsssbin\\";
 //static const string DBadd=;
 //kenny
 Table::Table(const string& tableName,DB * db):tableName(tableName),db(db)
-{
+{    
     string dbadd = db->CurrentDbPath.toStdString();
+    std::cout<<dbadd<<endl;
     add=dbadd+"\\"+tableName;
-    std::cout<<add;
+    //std::cout<<add;
     //未找到该表
     if(!readFromFile(tableName)) cerr<<"Error finding tabel."<<endl;
     line_num=lines.size();
@@ -443,5 +444,46 @@ void Table::show() {
             std::cout << value << "\t";
         }
         std::cout << std::endl;
+    }
+}
+bool Table::selectfrom(const vector<string>& selectedrows ,const string& tableName)
+{
+    //存选中列对应的在rows的下标位置
+    vector<int> accordrowsindex;
+    //若输入不存在的列名，则报错
+    for(unsigned int i=0;i<selectedrows.size();i++)//int 有警告
+    {
+        for(unsigned int j = 0;j<rows.size();j++)
+        {
+        if(selectedrows[i] == rows[j].rowName)
+        {
+            accordrowsindex.push_back(j);
+            break;
+        }
+        else
+        {
+            if(i == rows.size())
+            {
+                cerr << "unexist such column "  << endl;
+                return false;
+            }
+            else
+            {
+             continue;
+            }
+        }
+        }
+    }
+    //打印列名
+    for(const auto& selectedrow:selectedrows)
+    {
+        cout<<selectedrow<<" ";
+    }
+    cout<<endl;
+
+    //打印每一行
+    for(const auto & line:lines)
+    {
+
     }
 }

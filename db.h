@@ -13,9 +13,10 @@ public:
     bool usedb(QString db);
     bool showdbs();
     bool selectdatabase();
+    bool dropdb(QString dbname);
 
     QString SYSTEMfolderPath="D:/program/QT/DBMS/Ruanko";
-    QString CurrentDbPath="D:/program/QT/DBMS/Ruanko" ;
+    QString CurrentDbPath="D:\\program\\QT\\DBMS\\Ruanko" ;
     QStringList dbs;
 
 };

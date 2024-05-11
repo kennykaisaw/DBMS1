@@ -75,6 +75,8 @@ bool DB::createUserdb(QString USERdbName)
      {
          this->CurrentDbPath = SYSTEMfolderPath+ QDir::separator()+db;
          qDebug() << "use"<<db<<"successfully";
+         //将左斜杠换右斜杠
+          CurrentDbPath  = CurrentDbPath.replace("/", "\\");
          return true;
      }
      else
@@ -82,10 +84,15 @@ bool DB::createUserdb(QString USERdbName)
          qDebug() << "not exist this database";
          return false;
      }
+
  }
  bool DB::selectdatabase()
  {
-      qDebug() << this->CurrentDbPath;
+     int lastSlashIndex = CurrentDbPath.lastIndexOf('\\'); // 找到最后一个'/'的位置
+
+        // 使用mid()函数从最后一个'/'之后的位置开始提取字符串，直到字符串结束
+        QString dbname = CurrentDbPath.mid(lastSlashIndex + 1);
+      qDebug() << "current using:"<<dbname;
       return true;
  }
  bool DB::showdbs()
@@ -121,4 +128,35 @@ bool DB::createUserdb(QString USERdbName)
      return true;
 
  }
+ bool DB::dropdb(QString dbname)
+ {
+     QString dirPath = SYSTEMfolderPath +  QDir::separator()+dbname;
+     QDir dir(dirPath);
+
+         // 检查目录是否存在
+         if (!dir.exists()) {
+             qDebug() << "db" << dirPath << "does not exist.";
+             return false;
+         }
+
+         // 获取目录中的所有文件和子目录
+         QFileInfoList fileInfoList = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+
+         // 检查目录是否为空
+         if (fileInfoList.isEmpty()) {
+             // 删除空目录
+             if (dir.rmdir(dirPath)) {
+                 qDebug() << "Empty db" << dirPath << "removed successfully.";
+                 return true;
+             } else {
+                 qDebug() << "Failed to remove empty db" << dirPath;
+                 return false;
+             }
+         } else {
+             qDebug() << "db" << dirPath << "is not empty.";
+             return false;
+         }
+
+ }
+
 

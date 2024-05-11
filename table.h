@@ -91,6 +91,9 @@ public:
     Table(const vector<tableRows>& newTable,const string& tableName);//创建表构造函数
     //kenny
      Table(const vector<tableRows>& newTable,const string& tableName,DB * db);//表构造函数，需要db
+     //kenny
+     bool selectfrom(const vector<string>& selectedrows ,const string& tableName); //查询
+     //kenny
 
     DB *db;
     //kenny
