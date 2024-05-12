@@ -625,4 +625,62 @@ bool Table::selectfrom(const vector<string>& selectedrows ,const string& tableNa
     return true;
 }
 //kenny
+bool Table::selectallfrom(const string& tableName)
+{
+    //存选中列对应的在rows的下标位置
+    vector<int> accordrowsindex;
+    //将查询到的数据创建个表，用于建表
+    vector<tableRows> newtablerows;
+    //用于插入数据
+    string newtablerowsname;
+    
+        for(unsigned int j = 0;j<rows.size();j++)
+        {
+        
+            //存的是下标
+            accordrowsindex.push_back(j);
+            //存的是要新建表的列
+            newtablerowsname.append(rows[j].rowName);
+            newtablerows.push_back(rows[j]);
 
+            
+        }
+       
+//    //打印列名
+//    for(const auto& selectedrow:selectedrows)
+//    {
+//        cout<<selectedrow<<" ";
+//    }
+//    cout<<endl;
+
+    //建表
+    string newtablename = tableName+"select";
+    Table newtable(newtablerows,newtablename,this->db);
+
+    //打印每一行
+    for(const auto & line:lines)
+    {
+        // 使用std::stringstream将输入字符串通过|分割为子字符串
+           std::stringstream ssline(line);
+           std::string token;
+           std::vector<std::string> tokens;
+           while (std::getline(ssline, token, '|')) {
+               tokens.push_back(token);
+           }
+           //
+           string newdata;
+           //输出每一行第i列的数据
+        for(unsigned int i=0;i<accordrowsindex.size();i++)
+        {
+            cout<<tokens[i];
+            //加|成新的一行数据
+            newdata.append(tokens[i]);
+             newdata.append("|");
+        }
+        cout<<endl;
+        //去掉最后一个|,建表
+        newdata.pop_back();
+        newtable.instertTOTable(newdata,newtablerowsname);
+    }
+    return true;
+}

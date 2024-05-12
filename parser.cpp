@@ -220,7 +220,7 @@ QString Parser::parserfirst(QString text)
             std::string col = columnname.toStdString();
             QString type = words.at(1);
             //////////////////////////////////////
-            a.push_back({ col,type::VARCHAR,2,constrain::NONE,false,"" });
+            //a.push_back({ col,type::INT,2,constrain::NONE,false,"" });
             // string tname = tableName.toStdString();
 ////////////////////////////////////////////////////
 
@@ -241,7 +241,7 @@ QString Parser::parserfirst(QString text)
         QStringList words = matchedString.split(QRegExp("\\s+"), QString::SkipEmptyParts);
         QString secondpos = words.at(1);
         QString fourthpos = words.at(3);
-        QString fifthpos = words.at(4);
+
         //看第二个位置
         if (secondpos == "*")
         {
@@ -265,10 +265,7 @@ QString Parser::parserfirst(QString text)
                 Table tb(tablename,db);
                 tb.selectfrom(column_array,tablename);
             }
-            if(fifthpos == "where")
-            {
 
-            }
         }
 
 
