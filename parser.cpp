@@ -9,6 +9,23 @@ Parser::Parser()
 
 }
 
+
+ bool Parser::parsermulty(QString text)
+ {
+     //匹配;前的内容
+      QRegularExpression regex_delimeter(".+;", QRegularExpression::CaseInsensitiveOption);
+
+       QRegularExpressionMatchIterator matchIterator = regex_delimeter.globalMatch(text);
+       while (matchIterator.hasNext())
+       {
+           QRegularExpressionMatch match = matchIterator.next();
+            QString matchedText = match.captured(0);
+            parserfirst(matchedText);
+
+       }
+       return true;
+
+ }
 QString Parser::parserfirst(QString text)
 {
 

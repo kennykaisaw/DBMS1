@@ -365,6 +365,7 @@ public:
      Table(const vector<tableRows>& newTable,const string& tableName,DB * db);//表构造函数，需要db
      //kenny
      bool selectfrom(const vector<string>& selectedrows ,const string& tableName); //查询
+      bool selectallfrom(const string& tableName); //查询*
      //kenny
 
     DB *db;

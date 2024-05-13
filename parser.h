@@ -12,6 +12,7 @@ public:
     Parser();
     QString parserfirst(QString text);
     QString parserSecond();
+    bool parsermulty(QString text);
 
 
     DB *db;

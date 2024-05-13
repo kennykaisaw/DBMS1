@@ -230,7 +230,7 @@ void MainWindow::pushButtonDownloadAllClicked()
         /* 保存 */
         // 提取QTextEdit中的纯文本内容
         QString content = textEdit->toPlainText();
-        p.parserfirst(content);
+        p.parsermulty(content);
         qDebug() << content;
         textEdit->clear();
     }
