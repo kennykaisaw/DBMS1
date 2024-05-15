@@ -45,11 +45,11 @@ QString Parser::parserfirst(QString text)
 //    QRegularExpression regex_select("\\bselect\\s+\\S+\\s+from\\s+\\w+.*;", QRegularExpression::CaseInsensitiveOption);
 
 
-//     create_database( text);
-//     show_database( text);
-//     select_database( text);
-//     drop_database( text);
-//     use_database( text);
+     create_database( text);
+     show_database( text);
+     select_database( text);
+     drop_database( text);
+     use_database( text);
      create_table( text);
 //     insert_table( text);
 //     delete_table( text);
@@ -309,16 +309,16 @@ QString Parser::processColumnDefinition(const QString &columnDefinition, bool& i
  }
 
  bool Parser::create_table(QString text)
-    {
+ {
      string tablename;
      vector<tableRows> tableRows_array;
      vector<string> names_c;
      vector<string> cons_c ;
 
-        QRegularExpression regex_createtable(
-            R"(\bCREATE\s+TABLE\s+(\w+)\s*\((.*?)\);)",
-            QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption
-        );
+     QRegularExpression regex_createtable(
+                 R"(\bCREATE\s+TABLE\s+(\w+)\s*\((.*?)\);)",
+                 QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption
+                 );
 
      QRegularExpressionMatch match_createtable = regex_createtable.match(text);
      if (match_createtable.hasMatch())
@@ -428,12 +428,13 @@ QString Parser::processColumnDefinition(const QString &columnDefinition, bool& i
              }
          }
 
-     //建表
-     Table table(tableRows_array,tablename,db);
-     for(unsigned int i=0;i<cons_c.size();++i)
-     {
-         table.setContrain(names_c[i],cons_c[i]);
-     }
+         //建表
+         Table table(tableRows_array,tablename,db);
+         for(unsigned int i=0;i<cons_c.size();++i)
+         {
+             table.setContrain(names_c[i],cons_c[i]);
+         }
+         //table.updateForeignKenyMessages();
      }
 
 

@@ -6,34 +6,33 @@
 #include <QString>
 #include <QDir>
 //kenny
-Table::Table(const string& tableName,DB * db):tableName(tableName),db(db)
+Table::Table(const string& tableName, DB* db) :tableName(tableName), db(db)
 {
-    string dbadd = db->CurrentDbPath.toStdString();
-    std::cout<<dbadd<<endl;
-    add=dbadd+"\\"+tableName;
+     DBadd = db->CurrentDbPath.toStdString();
+    std::cout << DBadd << endl;
+    add = DBadd + "\\" + tableName;
     //std::cout<<add;
     //未找到该表
-    if(!readFromFile(tableName)) cerr<<"Error finding tabel."<<endl;
-    line_num=lines.size();
-    row_num=0;
+    if (!readFromFile(tableName)) cerr << "Error finding tabel." << endl;
+    line_num = lines.size();
+    row_num = 0;
     for (const auto& str : rows)
         row_num++;
 }
 
 //kenny
-Table::Table(const vector<tableRows>& newTable,const string& tableName,DB * db):tableName(tableName),rows(newTable),db(db)
+Table::Table(const vector<tableRows>& newTable, const string& tableName, DB* db) :tableName(tableName), rows(newTable), db(db)
 {
-    string dbadd = db->CurrentDbPath.toStdString();
-    add=dbadd+"\\"+tableName;
-    CreateTable(rows,tableName);
-    line_num=0;
+    string DBadd = db->CurrentDbPath.toStdString();
+    add = DBadd + "\\" + tableName;
+    CreateTable(rows, tableName);
+    line_num = 0;
     //rows=newTable;
-    row_num=0;
+    row_num = 0;
     for (const auto& str : rows)
         row_num++;
 }
 //kenny
-
 Table::~Table()
 {
 
@@ -47,29 +46,38 @@ for(auto ppp:lines)cout<<ppp<<endl;
 
 }
 
-bool Table::dropTable()
+bool Table::dropTable()//修改了5.15
 {
-    QString add_Q=QString::fromStdString(add);
-    QDir dir(add_Q);
-    if (!dir.exists())
+    //检查是否被依赖
+    if(!checkIfRefferenced())
     {
-        qDebug() << "Folder does not exist:" << add_Q;
-        return false;
-    }
+        QString add_Q=QString::fromStdString(add);
+        QDir dir(add_Q);
+        if (!dir.exists())
+        {
+            qDebug() << "Folder does not exist:" << add_Q;
+            return false;
+        }
 
-    if (dir.removeRecursively())
-    {
-        qDebug() << "Folder deleted successfully:" << add_Q;
-        return true;
+        if (dir.removeRecursively())
+        {
+            qDebug() << "Folder deleted successfully:" << add_Q;
+            return true;
+        }
+        else
+        {
+            qDebug() << "Error deleting folder:" << add_Q;
+            return false;
+        }
     }
     else
     {
-        qDebug() << "Error deleting folder:" << add_Q;
+        cerr<<"cannot drop for some row is refferenced"<<endl;
         return false;
     }
 }
 
-bool Table::instertTOTable(const string& content, const string& correspond)
+bool Table::instertTOTable(const string& content, const string& correspond)//修改了5.15
 {
     this_row.clear();
     this_row=rows;
@@ -118,8 +126,19 @@ bool Table::instertTOTable(const string& content, const string& correspond)
                         cerr<<"cannot insert for constrain limitations!"<<endl;
                         return false;
                     }
-                    this_row[i].content=content_v[j];
 
+                    //5.15新加，检查外键约束
+                    if(this_row[i].forignKeyName!=""&&this_row[i].forignKeyTable!="")
+                    {
+                        Table table(this_row[i].forignKeyTable,db);
+                        //找不到主键约束的行
+                        if(!table.find(this_row[i].forignKeyName,content_v[j]))
+                        {
+                            cerr<<"cannot insert for no such content in reference"<<endl;
+                            return false;
+                        }
+                    }
+                    this_row[i].content=content_v[j];
                 }
             }
         }
@@ -146,6 +165,17 @@ bool Table::instertTOTable(const string& content, const string& correspond)
                     cerr<<"cannot insert for constrain limitations!"<<endl;
                     return false;
                 }
+                //5.15新加，检查外键约束
+                if(this_row[i].forignKeyName!=""&&this_row[i].forignKeyTable!="")
+                {
+                    Table table(this_row[i].forignKeyTable,db);
+                    //找不到主键约束的行
+                    if(!table.find(this_row[i].forignKeyName,content_v[i]))
+                    {
+                        cerr<<"cannot insert for no such content in reference"<<endl;
+                        return false;
+                    }
+                }
                 this_row[i].content=content_v[i];
             }
         }
@@ -155,7 +185,7 @@ bool Table::instertTOTable(const string& content, const string& correspond)
     {
         newline.append(this_row[i].content);
         if(i<this_row.size()-1)//最后一个属性后不打|
-         newline.append("|");
+            newline.append("|");
     }
     //插入lines（内存暂存表结构）
     cout<<"newline"<<newline<<" linenum"<<lines.size();
@@ -164,77 +194,85 @@ bool Table::instertTOTable(const string& content, const string& correspond)
     //是否需要在此处保存？
     saveToFile();
     return true;
+
 }
-bool Table::deleteFromTable(const delete_mode& mode,const vector<string>&rowname,const vector<string>&constrainMessage,const string& operation)
+bool Table::deleteFromTable(const delete_mode& mode,const vector<string>&rowname,const vector<string>&constrainMessage,const string& operation)//修改5.15
 {
-
-    if(mode==delete_mode::ALL)//清空整个表
+    //检查是否被依赖
+    if(!checkIfRefferenced())
     {
-        ofstream file_C(add+"\\content.bin",ios::binary);
-        if (!file_C.is_open())
+        if(mode==delete_mode::ALL)//清空整个表
         {
-            cerr << "Error opening file " <<endl;
-            return false;
-        }
-        else
-        {
-            lines.clear();
-            file_C.write("",0);
-            cout<<"delete successfully!"<<endl;
-        }
+            ofstream file_C(add+"\\content.bin",ios::binary);
+            if (!file_C.is_open())
+            {
+                cerr << "Error opening file " <<endl;
+                return false;
+            }
+            else
+            {
+                lines.clear();
+                file_C.write("",0);
+                cout<<"delete successfully!"<<endl;
+            }
 
-        file_C.close();
-        return true;
+            file_C.close();
+            return true;
+        }
+        else if (mode==delete_mode::SELECT)//带限制的删除
+        {
+            //储存删除后的新表
+            vector<string>new_lines;
+            //先检查列限制数目是否匹配
+            if(rowname.size()!=constrainMessage.size())
+            {
+                cerr<<"num in delete !not match !"<<endl;
+                return false;
+            }
+            //获得限制所在的列，便于操作
+            vector<unsigned int> aim_row;//目标列所在编号
+            for(unsigned int i=0;i<rowname.size();++i)
+            {
+                for(unsigned int j=0;j<(unsigned)row_num;++j)
+                {
+                    if(rowname[i]==rows[j].rowName)
+                        aim_row.push_back(j);
+                }
+            }
+            if(rowname.size()!=aim_row.size())
+            {
+                cerr<<"now such row !"<<endl;
+                return false;
+            }
+            //逐行检测,i为行号
+            for(unsigned int i=0;i<(unsigned int)line_num;++i)
+            {
+                checkLines(lines[i]);
+                bool flag;
+                vector<bool>checks;
+                for(unsigned int j=0;j<aim_row.size();++j)//每一个限制检查
+                {
+                    bool f=checkConstrains(constrainMessage[j],this_row[aim_row[j]].rowType,this_row[aim_row[j]].content);
+                    checks.push_back(f);
+                }
+                //flag=eva
+                flag=evaluate(operation,checks);
+                //检查是否符合所有约束,不符合就保留
+                if(!flag) new_lines.push_back(lines[i]);
+            }
+            lines=new_lines;
+            //for(auto ppp:lines)cout<<ppp<<endl;
+            //保存文件
+            saveToFile();
+            return true;
+        }
+        else return false;
     }
-    else if (mode==delete_mode::SELECT)//带限制的删除
+    else
     {
-        //储存删除后的新表
-        vector<string>new_lines;
-        //先检查列限制数目是否匹配
-        if(rowname.size()!=constrainMessage.size())
-        {
-            cerr<<"num in delete !not match !"<<endl;
-            return false;
-        }
-        //获得限制所在的列，便于操作
-        vector<unsigned int> aim_row;//目标列所在编号
-        for(unsigned int i=0;i<rowname.size();++i)
-        {
-            for(unsigned int j=0;j<(unsigned)row_num;++j)
-            {
-                if(rowname[i]==rows[j].rowName)
-                    aim_row.push_back(j);
-            }
-        }
-        if(rowname.size()!=aim_row.size())
-        {
-            cerr<<"now such row !"<<endl;
-            return false;
-        }
-        //逐行检测,i为行号
-        for(unsigned int i=0;i<(unsigned int)line_num;++i)
-        {
-            checkLines(lines[i]);
-            bool flag;
-            vector<bool>checks;
-            for(unsigned int j=0;j<aim_row.size();++j)//每一个限制检查
-            {
-               bool f=checkConstrains(constrainMessage[j],this_row[aim_row[j]].rowType,this_row[aim_row[j]].content);
-               checks.push_back(f);
-            }
-            //flag=eva
-            flag=evaluate(operation,checks);
-            //检查是否符合所有约束,不符合就保留
-           if(!flag) new_lines.push_back(lines[i]);
-        }
-        lines=new_lines;
-        //for(auto ppp:lines)cout<<ppp<<endl;
-        //保存文件
-        saveToFile();
-        return true;
+        cerr<<"cannot delete for some row is refferenced"<<endl;
+        return false;
     }
-    else return false;
-
 }
 
 //实在不想写了，这里只能修改一列，sql修改多列就多次调用
@@ -314,6 +352,34 @@ bool Table::alterTable(const Table::alter_mode &mode, const Table::alter_class &
             saveToFile(save_mode::ATTRIBUTE);
         }
     }
+    else if(mode==alter_mode::DROP&&class_A==alter_class::FOREIGN_KEY)//删除外键(f)
+    {
+        vector<string> rownames=splitByPipe(content);
+        for(auto name:rownames)
+        {
+            unsigned int i=0;
+            for(;i<(unsigned int)row_num;++i)
+            {
+                if(rows[i].rowName==name&&rows[i].forignKeyName!=""&&rows[i].forignKeyTable!="")
+                {
+                    rows[i].forignKeyName="";
+                    rows[i].forignKeyTable="";
+                }
+                else if (rows[i].forignKeyName==""&&rows[i].forignKeyTable=="")
+                {
+                    cerr<<rows[i].rowName<<"is not reference,change stop here!"<<endl;
+                    return false;
+                }
+            }
+            if (i>=(unsigned int)row_num)
+            {
+                cerr<<"no such row,change stop here!"<<endl;
+                return false;
+            }
+            saveToFile(save_mode::ATTRIBUTE);
+        }
+        updateForeignKenyMessages();
+    }
     else if(mode==alter_mode::DROP&&class_A==alter_class::CONSTRAIN)//删除约束(f)
     {
         //检查是否有这列
@@ -355,6 +421,59 @@ bool Table::alterTable(const Table::alter_mode &mode, const Table::alter_class &
                 return false; // 删除失败
             }
         }
+    }
+    else if(mode==alter_mode::ADD&&class_A==alter_class::PRIMARY_KRY)//增加主键(f)
+    {
+        vector<string> rownames=splitByPipe(content);
+        for(auto name:rownames)
+        {
+            unsigned int i=0;
+            for(;i<(unsigned int)row_num;++i)
+            {
+                if(rows[i].rowName==name&&rows[i].isPrimaryKey==false)
+                    rows[i].isPrimaryKey=true;
+                else if (rows[i].isPrimaryKey==true)
+                {
+                    cerr<<rows[i].rowName<<"is  primary,change stop here!"<<endl;
+                    return false;
+                }
+            }
+            if (i>=(unsigned int)row_num)
+            {
+                cerr<<"no such row,change stop here!"<<endl;
+                return false;
+            }
+            saveToFile(save_mode::ATTRIBUTE);
+        }
+    }
+    else if(mode==alter_mode::ADD&&class_A==alter_class::FOREIGN_KEY)//增加外键(f)  只允许增加一个外键，constrain格式 ： tablename|rowname本表下的content列
+    {
+        vector<string> rownames=splitByPipe(content);
+        vector<string> contentss=splitByPipe(constrainn);
+        for(auto name:rownames)
+        {
+            unsigned int i=0;
+            for(;i<(unsigned int)row_num;++i)
+            {
+                if(rows[i].rowName==name&&rows[i].forignKeyName==""&&rows[i].forignKeyTable=="")
+                {
+                    rows[i].forignKeyName=contentss[1];
+                    rows[i].forignKeyTable=contentss[0];
+                }
+                else if (rows[i].forignKeyName!=""&&rows[i].forignKeyTable!="")
+                {
+                    cerr<<rows[i].rowName<<"is  reference,change stop here!"<<endl;
+                    return false;
+                }
+            }
+            if (i>=(unsigned int)row_num)
+            {
+                cerr<<"no such row,change stop here!"<<endl;
+                return false;
+            }
+            saveToFile(save_mode::ATTRIBUTE);
+        }
+        updateForeignKenyMessages();
     }
     else if(mode==alter_mode::ADD&&class_A==alter_class::ROW)//增加列   //只允许传 列名|类型
     {
@@ -406,7 +525,11 @@ bool Table::alterTable(const Table::alter_mode &mode, const Table::alter_class &
         //cerr<<message<<endl;
         string newCons=getContrain(content);
         newCons.append(constrainn);
-        newCons[0] = 'h';
+        char a=newCons[0];
+        int digit = a - '0'; // 转换为整数2
+        digit++;
+        char digitChar = digit + '0'; // 将整数5转换为字符'5'
+        newCons[0] = digitChar;
         setContrain(content,newCons);
     }
     else if(mode==alter_mode::RENAME&&class_A==alter_class::ROW)//列重命名,传两个string|string，一个是旧名，一个是新名(f)
@@ -443,7 +566,7 @@ bool Table::alterTable(const Table::alter_mode &mode, const Table::alter_class &
         // 将 std::string 转换为 QString
         QString oldDirQString = QString::fromStdString(add);
         qDebug() <<  oldDirQString<<888;
-        QString newDirQString = QDir(oldDirQString).filePath(QString::fromStdString(add));
+        QString newDirQString = QDir(oldDirQString).filePath(QString::fromStdString(DBadd+content));
         qDebug() <<  newDirQString<<999;
 
         // 使用 QDir 进行重命名
@@ -551,7 +674,7 @@ bool Table::alterTable(const Table::alter_mode &mode, const Table::alter_class &
     return true;
 }
 
-bool Table::updateTable(const vector<string>&rowname,const vector<string>&goal,const vector<string>&cname,const vector<string>&constrainMessage,const string& operation)
+bool Table::updateTable(const vector<string>&rowname,const vector<string>&goal,const vector<string>&cname,const vector<string>&constrainMessage,const string& operation)//修改5.15
 {
     //传入数据不符合规范，直接报错
     if(rowname.size()!=goal.size())
@@ -628,6 +751,25 @@ bool Table::updateTable(const vector<string>&rowname,const vector<string>&goal,c
     {
         cerr<<"wrong row name num!"<<endl;
     }
+
+
+
+    //test代码块，检查主外键约束
+    //{
+    for(unsigned int i=0;i<rowname.size();++i)
+    {
+        //有主外键约束
+        if(rows[aim_row[i]].forignKeyName!=""&&rows[aim_row[i]].forignKeyTable!="")
+        {
+            Table table(rows[aim_row[i]].forignKeyTable,db);
+            if(!table.find(rows[aim_row[i]].forignKeyName,goal[i]));
+            {
+                cerr<<"cannot update for cannot find referece to update"<<endl;
+                return false;
+            }
+        }
+    }
+    //}
 
     //再查找where限制的行，删除这个行并将content更新到新行上
     //注意，每个return false前加一个readFromFile(tableName);
@@ -747,8 +889,8 @@ bool Table::CreateTable(const vector<tableRows>& newTable,const string& tableNam
 {
     QDir dir;
     //要改成常量
-    QString tableDirPath = QString::fromStdString(add);
-    string tableDirPath1=add;
+    QString tableDirPath = QString::fromStdString(DBadd+tableName);
+    string tableDirPath1=DBadd+tableName;
     //创建表文件夹,文件夹内存放表相关信息文件
     if (!dir.exists(tableDirPath))
     {
@@ -854,7 +996,7 @@ bool Table::readFromFile(const string& tableName)
     const char delimiter = '\n';
     QDir dir;
     //要改成常量
-    QString tableDirPath = QString::fromStdString(add);
+    QString tableDirPath = QString::fromStdString(DBadd+tableName);
     //表不存在返回false
     if (!dir.exists(tableDirPath))
     {
@@ -948,27 +1090,386 @@ void Table::show() {
         std::cout << std::endl;
     }
 }
-//kenny
-bool Table::selectallfrom(const string& tableName,const vector<string>rowname,const vector<string>&constrainMessage,const string& operation)
+
+bool Table::updateForeignKenyMessages()
 {
-    //存选中列对应的在rows的下标位置
-    vector<int> accordrowsindex;
-    //将查询到的数据创建个表，用于建表
-    vector<tableRows> newtablerows;
-    //用于插入数据
-    string newtablerowsname;
+    string ForeignKenyMessages="";
+    QString directoryPath=QString::fromStdString(DBadd);
+    QDir dir(QString::fromStdString(DBadd));
 
-        for(unsigned int j = 0;j<rows.size();j++)
+    // 检查目录是否存在
+    if (!dir.exists())
+    {
+        qDebug() << "The directory" << directoryPath << "does not exist.";
+        return false;
+    }
+
+    // 设置过滤器，只显示文件夹
+    dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+
+    // 遍历目录
+    QFileInfoList entries = dir.entryInfoList();
+    for (const QFileInfo &entry : entries)
+    {
+        QString baseName = entry.baseName(); // 获取没有扩展名的文件名
+        //qDebug() << baseName;
+        // 构造子目录的完整路径
+        QString subDirPath = entry.absoluteFilePath();
+       // qDebug() << subDirPath<<999;
+
+        // 读取子目录中的attribute.bin文件
+        QString filePath = subDirPath + "/attribute.bin";
+        //qDebug() << filePath<<999;
+        string attributePath=filePath.toStdString();
+        //cout<<attributePath<<666;
+        //QFile file(filePath);
+        ifstream file_A(attributePath,ios::binary);
+        tableRows row;
+        if (file_A.is_open())
         {
-
-            //存的是下标
-            accordrowsindex.push_back(j);
-            //存的是要新建表的列
-            newtablerowsname.append(rows[j].rowName);
-            newtablerows.push_back(rows[j]);
-
-
+            string line;
+            while (getline(file_A, line))
+            {
+                //字符流
+                stringstream ss(line);
+                string item;
+                //rowName
+                getline(ss, item, '|');
+                row.rowName = item;
+                //rowType
+                getline(ss, item, '|');
+                row.rowType = static_cast<type>(stoi(item));
+                //isPrimaryKey
+                getline(ss, item, '|');
+                row.isPrimaryKey = static_cast<bool>(stoi(item));
+                //forignKeyName
+                getline(ss, item, '|');
+                row.forignKeyName = item;
+                //forignKeyTable
+                getline(ss, item, '|');
+                row.forignKeyTable = item;
+                //default_content
+                getline(ss, item, '|');
+                row.default_content = item;
+                //constrainMessage
+                getline(ss, item, '|');
+                row.constrainMessage = static_cast<bool>(stoi(item));
+            }
+            file_A.close();
+            //cout << "Data read from file successfully." << endl;
+            //有外键
+            if(row.forignKeyName!=""&&row.forignKeyTable!="")
+            {
+                //cout<<"success"<<endl;
+                ForeignKenyMessages.append(row.forignKeyTable+"|"+row.forignKeyName
+                                           +"|"+baseName.toStdString()+"|"+row.rowName+"\n");
+               // cout<<ForeignKenyMessages<<endl;
+            }
         }
+        else
+        {
+            cerr << "Unable to open file981518587: "  << endl;
+        }
+    }
+    ofstream file_A(DBadd+"\\ForeignKenyMessages.bin",ios::binary);
+    if (!file_A.is_open())
+    {
+        cerr << "Error opening file " <<endl;
+        return false;
+    }
+    file_A<<ForeignKenyMessages;
+    file_A.close();
+
+    return true;
+}
+//struct ForeignKenyMessages
+//{
+//    string table_f;
+//    string row_f;
+//    string table_b;
+//    string row_b;
+
+//};
+
+bool Table::checkForeignKenyMessages(const string &table_c, const string &row_c)
+{
+    bool flag=false;
+    vector<ForeignKenyMessages>FM;
+    ifstream file_C(DBadd+"\\ForeignKenyMessages.bin",ios::binary);
+    if (file_C.is_open())
+    {
+        string line;
+        while (getline(file_C, line))
+        {
+            ForeignKenyMessages row;
+            //字符流
+            stringstream ss(line);
+            string item;
+            //rowName
+            getline(ss, item, '|');
+            row.table_f = item;
+            //rowType
+            getline(ss, item, '|');
+            row.row_f =item;
+            //isPrimaryKey
+            getline(ss, item, '|');
+            row.table_b =item;
+            //forignKeyName
+            getline(ss, item, '|');
+            row.row_b= item;
+            FM.push_back(row);
+        }
+        file_C.close();
+    }
+    else
+    {
+        cerr << "Error opening file: " << DBadd+"\\ForeignKenyMessages.bin" << endl;
+        return false;
+    }
+    for(auto fm:FM)
+    {
+        if(fm.table_f==table_c&&fm.row_f==row_c)
+        {
+            flag=true;
+            break;
+        }
+    }
+    return flag;
+}
+
+string Table::checkForeignKenyMessages_r(const string &table_c, const string &row_c)
+{
+    bool flag=false;
+    vector<ForeignKenyMessages>FM;
+    ifstream file_C(DBadd+"\\ForeignKenyMessages.bin",ios::binary);
+    if (file_C.is_open())
+    {
+        string line;
+        while (getline(file_C, line))
+        {
+            ForeignKenyMessages row;
+            //字符流
+            stringstream ss(line);
+            string item;
+            //rowName
+            getline(ss, item, '|');
+            row.table_f = item;
+            //rowType
+            getline(ss, item, '|');
+            row.row_f =item;
+            //isPrimaryKey
+            getline(ss, item, '|');
+            row.table_b =item;
+            //forignKeyName
+            getline(ss, item, '|');
+            row.row_b= item;
+            FM.push_back(row);
+        }
+        file_C.close();
+    }
+    else
+    {
+        cerr << "Error opening file: " << DBadd+"\\ForeignKenyMessages.bin" << endl;
+        return "";
+    }
+    string returns;
+    for(auto fm:FM)
+    {
+        if(fm.table_f==table_c&&fm.row_f==row_c)
+        {
+            flag=true;
+            returns.append(fm.table_b+"|"+fm.row_b);
+            break;
+        }
+    }
+    return returns;
+}
+
+bool Table::checkIfRefferenced()
+{
+    for(auto r:rows)
+    {
+        if(checkForeignKenyMessages(tableName,r.rowName))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+//bool Table::findIfExist(string checkForeignKenyMessages_return, string cont)
+//{
+//    vector<string> contents=splitByPipe(checkForeignKenyMessages_return);
+//    string tname=contents[0];
+//    string rname=contents[1];
+//    Table table(tname);
+
+//    return table.find(rname,cont);
+
+//}
+
+bool Table::find(const string &rname, const string &con)
+{
+    unsigned int i=0;
+    for(;i<rows.size();++i)
+    {
+        if(rows[i].rowName==rname)
+            break;
+    }
+    if(i>=rows.size())
+        return false;
+    for(auto l :lines)
+    {
+        checkLines(l);
+        if(this_row[i].content==con)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+////kenny
+//bool Table::selectallfrom(const string& tableName,const vector<string>rowname,const vector<string>&constrainMessage,const string& operation)
+//{
+//    //存选中列对应的在rows的下标位置
+//    vector<int> accordrowsindex;
+//    //将查询到的数据创建个表，用于建表
+//    vector<tableRows> newtablerows;
+//    //用于插入数据
+//    string newtablerowsname;
+
+//        for(unsigned int j = 0;j<rows.size();j++)
+//        {
+
+//            //存的是下标
+//            accordrowsindex.push_back(j);
+//            //存的是要新建表的列
+//            newtablerowsname.append(rows[j].rowName);
+//            newtablerows.push_back(rows[j]);
+
+
+//        }
+
+////    //打印列名
+////    for(const auto& selectedrow:selectedrows)
+////    {
+////        cout<<selectedrow<<" ";
+////    }
+////    cout<<endl;
+
+//    //建表
+//    string newtablename = tableName+"select";
+//    Table newtable(newtablerows,newtablename,this->db);
+
+
+
+//    //wvan2233
+//    //获得所需的行
+//    vector<string> aim_line;//目标列所在编号
+//    //先检查列限制数目是否匹配
+//    if(rowname.size()!=constrainMessage.size())
+//    {
+//        cerr<<"num in delete !not match !"<<endl;
+//        return false;
+//    }
+//    //获得限制所在的列，便于操作
+//    vector<unsigned int> aim_row;//目标列所在编号
+//    for(unsigned int i=0;i<rowname.size();++i)
+//    {
+//        for(unsigned int j=0;j<(unsigned)row_num;++j)
+//        {
+//            if(rowname[i]==rows[j].rowName)
+//                aim_row.push_back(j);
+//        }
+//    }
+//    if(rowname.size()!=aim_row.size())
+//    {
+//        cerr<<"now such row !"<<endl;
+//        return false;
+//    }
+//    //逐行检测,i为行号
+//    for(unsigned int i=0;i<(unsigned int)line_num;++i)
+//    {
+//        checkLines(lines[i]);
+//        bool flag;
+//        vector<bool>checks;
+//        for(unsigned int j=0;j<aim_row.size();++j)//每一个限制检查
+//        {
+//           bool f=checkConstrains(constrainMessage[j],this_row[aim_row[j]].rowType,this_row[aim_row[j]].content);
+//           checks.push_back(f);
+//        }
+//        flag=evaluate(operation,checks);
+//        //检查是否符合所有约束,符合就保留
+//       if(flag) aim_line.push_back(lines[i]);
+//    }
+
+
+//    //kenny
+//    //打印每一行
+//    for(const auto & line:aim_line)
+//    {
+//        // 使用std::stringstream将输入字符串通过|分割为子字符串
+//           std::stringstream ssline(line);
+//           std::string token;
+//           std::vector<std::string> tokens;
+//           while (std::getline(ssline, token, '|')) {
+//               tokens.push_back(token);
+//           }
+//           //
+//           string newdata;
+//           //输出每一行第i列的数据
+//        for(unsigned int i=0;i<accordrowsindex.size();i++)
+//        {
+//            cout<<tokens[i];
+//            //加|成新的一行数据
+//            newdata.append(tokens[i]);
+//             newdata.append("|");
+//        }
+//        cout<<endl;
+//        //去掉最后一个|,建表
+//        newdata.pop_back();
+//        newtable.instertTOTable(newdata,newtablerowsname);
+//    }
+//    return true;
+//}
+////kenny
+//bool Table::selectfrom(const vector<string>& selectedrows ,const string& tableName,const vector<string>rowname,const vector<string>&constrainMessage,const string& operation)
+//{
+//    //存选中列对应的在rows的下标位置
+//    vector<int> accordrowsindex;
+//    //将查询到的数据创建个表，用于建表
+//    vector<tableRows> newtablerows;
+//    //用于插入数据
+//    string newtablerowsname;
+//    //若输入不存在的列名，则报错
+//    for(unsigned int i=0;i<selectedrows.size();i++)//int 有警告
+//    {
+//        for(unsigned int j = 0;j<rows.size();j++)
+//        {
+//        if(selectedrows[i] == rows[j].rowName)
+//        {
+//            //存的是下标
+//            accordrowsindex.push_back(j);
+//            //存的是要新建表的列
+//            newtablerowsname.append(selectedrows[i]);
+//            newtablerows.push_back(rows[j]);
+
+//            break;
+//        }
+//        else
+//        {
+//            if(j == rows.size()-1)
+//            {
+//                cerr << "unexist such column "  << endl;
+//                return false;
+//            }
+//            else
+//            {
+//             continue;
+//            }
+//        }
+//        }
+//    }
 
 //    //打印列名
 //    for(const auto& selectedrow:selectedrows)
@@ -977,199 +1478,78 @@ bool Table::selectallfrom(const string& tableName,const vector<string>rowname,co
 //    }
 //    cout<<endl;
 
-    //建表
-    string newtablename = tableName+"select";
-    Table newtable(newtablerows,newtablename,this->db);
+//    //建表
+//    string newtablename = tableName+"select";
+//    Table newtable(newtablerows,newtablename,this->db);
 
 
-
-    //wvan2233
-    //获得所需的行
-    vector<string> aim_line;//目标列所在编号
-    //先检查列限制数目是否匹配
-    if(rowname.size()!=constrainMessage.size())
-    {
-        cerr<<"num in delete !not match !"<<endl;
-        return false;
-    }
-    //获得限制所在的列，便于操作
-    vector<unsigned int> aim_row;//目标列所在编号
-    for(unsigned int i=0;i<rowname.size();++i)
-    {
-        for(unsigned int j=0;j<(unsigned)row_num;++j)
-        {
-            if(rowname[i]==rows[j].rowName)
-                aim_row.push_back(j);
-        }
-    }
-    if(rowname.size()!=aim_row.size())
-    {
-        cerr<<"now such row !"<<endl;
-        return false;
-    }
-    //逐行检测,i为行号
-    for(unsigned int i=0;i<(unsigned int)line_num;++i)
-    {
-        checkLines(lines[i]);
-        bool flag;
-        vector<bool>checks;
-        for(unsigned int j=0;j<aim_row.size();++j)//每一个限制检查
-        {
-           bool f=checkConstrains(constrainMessage[j],this_row[aim_row[j]].rowType,this_row[aim_row[j]].content);
-           checks.push_back(f);
-        }
-        flag=evaluate(operation,checks);
-        //检查是否符合所有约束,符合就保留
-       if(flag) aim_line.push_back(lines[i]);
-    }
-
-
-    //kenny
-    //打印每一行
-    for(const auto & line:aim_line)
-    {
-        // 使用std::stringstream将输入字符串通过|分割为子字符串
-           std::stringstream ssline(line);
-           std::string token;
-           std::vector<std::string> tokens;
-           while (std::getline(ssline, token, '|')) {
-               tokens.push_back(token);
-           }
-           //
-           string newdata;
-           //输出每一行第i列的数据
-        for(unsigned int i=0;i<accordrowsindex.size();i++)
-        {
-            cout<<tokens[i];
-            //加|成新的一行数据
-            newdata.append(tokens[i]);
-             newdata.append("|");
-        }
-        cout<<endl;
-        //去掉最后一个|,建表
-        newdata.pop_back();
-        newtable.instertTOTable(newdata,newtablerowsname);
-    }
-    return true;
-}
-//kenny
-bool Table::selectfrom(const vector<string>& selectedrows ,const string& tableName,const vector<string>rowname,const vector<string>&constrainMessage,const string& operation)
-{
-    //存选中列对应的在rows的下标位置
-    vector<int> accordrowsindex;
-    //将查询到的数据创建个表，用于建表
-    vector<tableRows> newtablerows;
-    //用于插入数据
-    string newtablerowsname;
-    //若输入不存在的列名，则报错
-    for(unsigned int i=0;i<selectedrows.size();i++)//int 有警告
-    {
-        for(unsigned int j = 0;j<rows.size();j++)
-        {
-        if(selectedrows[i] == rows[j].rowName)
-        {
-            //存的是下标
-            accordrowsindex.push_back(j);
-            //存的是要新建表的列
-            newtablerowsname.append(selectedrows[i]);
-            newtablerows.push_back(rows[j]);
-
-            break;
-        }
-        else
-        {
-            if(j == rows.size()-1)
-            {
-                cerr << "unexist such column "  << endl;
-                return false;
-            }
-            else
-            {
-             continue;
-            }
-        }
-        }
-    }
-
-    //打印列名
-    for(const auto& selectedrow:selectedrows)
-    {
-        cout<<selectedrow<<" ";
-    }
-    cout<<endl;
-
-    //建表
-    string newtablename = tableName+"select";
-    Table newtable(newtablerows,newtablename,this->db);
+//    //wvan2233
+//    //获得所需的行
+//    vector<string> aim_line;//目标列所在编号
+//    //先检查列限制数目是否匹配
+//    if(rowname.size()!=constrainMessage.size())
+//    {
+//        cerr<<"num in delete !not match !"<<endl;
+//        return false;
+//    }
+//    //获得限制所在的列，便于操作
+//    vector<unsigned int> aim_row;//目标列所在编号
+//    for(unsigned int i=0;i<rowname.size();++i)
+//    {
+//        for(unsigned int j=0;j<(unsigned)row_num;++j)
+//        {
+//            if(rowname[i]==rows[j].rowName)
+//                aim_row.push_back(j);
+//        }
+//    }
+//    if(rowname.size()!=aim_row.size())
+//    {
+//        cerr<<"now such row !"<<endl;
+//        return false;
+//    }
+//    //逐行检测,i为行号
+//    for(unsigned int i=0;i<(unsigned int)line_num;++i)
+//    {
+//        checkLines(lines[i]);
+//        bool flag;
+//        vector<bool>checks;
+//        for(unsigned int j=0;j<aim_row.size();++j)//每一个限制检查
+//        {
+//           bool f=checkConstrains(constrainMessage[j],this_row[aim_row[j]].rowType,this_row[aim_row[j]].content);
+//           checks.push_back(f);
+//        }
+//        flag=evaluate(operation,checks);
+//        //检查是否符合所有约束,符合就保留
+//       if(flag) aim_line.push_back(lines[i]);
+//    }
 
 
-    //wvan2233
-    //获得所需的行
-    vector<string> aim_line;//目标列所在编号
-    //先检查列限制数目是否匹配
-    if(rowname.size()!=constrainMessage.size())
-    {
-        cerr<<"num in delete !not match !"<<endl;
-        return false;
-    }
-    //获得限制所在的列，便于操作
-    vector<unsigned int> aim_row;//目标列所在编号
-    for(unsigned int i=0;i<rowname.size();++i)
-    {
-        for(unsigned int j=0;j<(unsigned)row_num;++j)
-        {
-            if(rowname[i]==rows[j].rowName)
-                aim_row.push_back(j);
-        }
-    }
-    if(rowname.size()!=aim_row.size())
-    {
-        cerr<<"now such row !"<<endl;
-        return false;
-    }
-    //逐行检测,i为行号
-    for(unsigned int i=0;i<(unsigned int)line_num;++i)
-    {
-        checkLines(lines[i]);
-        bool flag;
-        vector<bool>checks;
-        for(unsigned int j=0;j<aim_row.size();++j)//每一个限制检查
-        {
-           bool f=checkConstrains(constrainMessage[j],this_row[aim_row[j]].rowType,this_row[aim_row[j]].content);
-           checks.push_back(f);
-        }
-        flag=evaluate(operation,checks);
-        //检查是否符合所有约束,符合就保留
-       if(flag) aim_line.push_back(lines[i]);
-    }
-
-
-    //kenny
-    //打印每一行
-    for(const auto & line:aim_line)
-    {
-        // 使用std::stringstream将输入字符串通过|分割为子字符串
-           std::stringstream ssline(line);
-           std::string token;
-           std::vector<std::string> tokens;
-           while (std::getline(ssline, token, '|'))
-           {
-               tokens.push_back(token);
-           }
-           //
-           string newdata;
-           //输出每一行第i列的数据
-        for(unsigned int i=0;i<accordrowsindex.size();i++)
-        {
-            cout<<tokens[i];
-            //加|成新的一行数据
-            newdata.append(tokens[i]);
-             newdata.append("|");
-        }
-        cout<<endl;
-        //去掉最后一个|,建表
-        newdata.pop_back();
-        newtable.instertTOTable(newdata,newtablerowsname);
-    }
-    return true;
-}
+//    //kenny
+//    //打印每一行
+//    for(const auto & line:aim_line)
+//    {
+//        // 使用std::stringstream将输入字符串通过|分割为子字符串
+//           std::stringstream ssline(line);
+//           std::string token;
+//           std::vector<std::string> tokens;
+//           while (std::getline(ssline, token, '|'))
+//           {
+//               tokens.push_back(token);
+//           }
+//           //
+//           string newdata;
+//           //输出每一行第i列的数据
+//        for(unsigned int i=0;i<accordrowsindex.size();i++)
+//        {
+//            cout<<tokens[i];
+//            //加|成新的一行数据
+//            newdata.append(tokens[i]);
+//             newdata.append("|");
+//        }
+//        cout<<endl;
+//        //去掉最后一个|,建表
+//        newdata.pop_back();
+//        newtable.instertTOTable(newdata,newtablerowsname);
+//    }
+//    return true;
+//}
