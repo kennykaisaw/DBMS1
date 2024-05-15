@@ -130,7 +130,7 @@ bool DB::createUserdb(QString USERdbName)
  }
  bool DB::dropdb(QString dbname)
  {
-     QString dirPath = SYSTEMfolderPath +  QDir::separator()+dbname;
+     QString dirPath = SYSTEMfolderPath +  QDir::separator() + dbname;
      QDir dir(dirPath);
 
          // 检查目录是否存在

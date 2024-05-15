@@ -231,6 +231,7 @@ void MainWindow::pushButtonDownloadAllClicked()
         // 提取QTextEdit中的纯文本内容
         QString content = textEdit->toPlainText();
         p.parsermulty(content);
+        //p.insert_table(content);
         qDebug() << content;
         textEdit->clear();
     }

@@ -45,16 +45,30 @@ QString Parser::parserfirst(QString text)
     QRegularExpression regex_select("\\bselect\\s+\\S+\\s+from\\s+\\w+.*;", QRegularExpression::CaseInsensitiveOption);
 
 
+    bool create_database(QString text);
+    bool show_database(QString text);
+    bool select_database(QString text);
+    bool drop_database(QString text);
+    bool use_database(QString text);
+    bool create_table(QString text);
+    bool insert_table(QString text);
+    bool delete_table(QString text);
+    bool update_table(QString text);
+    bool alter_table(QString text);
+    bool select_from(QString text);
+    string singlecolumn_constraints(QString text);
+    string multicolumn_constraints(QString text);
+
+
+
+}
 
 
 
 
-
-
-
-
-
-
+ bool Parser::create_database(QString text)
+ {
+     QRegularExpression regex_createdatabase("\\bcreate\\s+database\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
     //create database dbname;
     QRegularExpressionMatch match_create = regex_createdatabase.match(text);
 
@@ -74,8 +88,11 @@ QString Parser::parserfirst(QString text)
 
         qDebug() << "Match found:" << matchedString;
     }
+ }
 
     //showdatabases;
+ bool show_database(QString text)
+{
     QRegularExpressionMatch match_showdatabases = regex_showdatabases.match(text);
 
     if (match_showdatabases.hasMatch())
@@ -84,7 +101,11 @@ QString Parser::parserfirst(QString text)
         qDebug() << "Match found:" << matchedString;
         db->showdbs();
     }
+ }
+
     //selectdatabase();
+ bool select_database(QString text)
+ {
     QRegularExpressionMatch match_selectdatabase = regex_selectdatabase.match(text);
 
     if (match_selectdatabase.hasMatch())
@@ -93,6 +114,7 @@ QString Parser::parserfirst(QString text)
         qDebug() << "Match found:" << matchedString;
        db->selectdatabase();
     }
+ }
     //use dbname;
     QRegularExpressionMatch match_use = regex_use.match(text);
 
@@ -110,6 +132,8 @@ QString Parser::parserfirst(QString text)
 
 
     //drop;
+    bool drop_database(QString text)
+    {
     QRegularExpressionMatch match_drop = regex_drop.match(text);
     if (match_drop.hasMatch())
     {
@@ -140,6 +164,7 @@ QString Parser::parserfirst(QString text)
 
 
         qDebug() << "Match found:" << matchedString;
+    }
     }
 
     //delete;
@@ -283,12 +308,6 @@ QString Parser::parserfirst(QString text)
             }
 
         }
-
-
-
-
-
-
 
 
         qDebug() << "Match found:" << matchedString;
