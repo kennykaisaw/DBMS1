@@ -30,36 +30,51 @@ Parser::Parser()
 QString Parser::parserfirst(QString text)
 {
 
-    QRegularExpression regex_createdatabase("\\bcreate\\s+database\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_showdatabases("\\bshow\\s+databases;", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_selectdatabase("\\bselect\\s+database\\(\\);", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_use("\\buse\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_drop("\\bdrop\\s+\\w+\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_delete("\\bdelete\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_insertinto("\\bINSERT\\s+INTO\\s+\\w+\\s*\\([^\\)]+\\)\\s*VALUES\\s*\\([^\\)]+\\);", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_createtable("\\bCREATE\\s+TABLE\\s+(\\w+)\\s*\\(([^;]+)\\);", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_update("\\bupdate\\b", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_alter("\\balter\\b", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_show("\\bshow\\b", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_grant("\\bgrant\\b", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression regex_select("\\bselect\\s+\\S+\\s+from\\s+\\w+.*;", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_createdatabase("\\bcreate\\s+database\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_showdatabases("\\bshow\\s+databases;", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_selectdatabase("\\bselect\\s+database\\(\\);", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_use("\\buse\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_drop("\\bdrop\\s+\\w+\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_delete("\\bdelete\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_insertinto("\\bINSERT\\s+INTO\\s+\\w+\\s*\\([^\\)]+\\)\\s*VALUES\\s*\\([^\\)]+\\);", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_createtable("\\bCREATE\\s+TABLE\\s+(\\w+)\\s*\\(([^;]+)\\);", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_update("\\bupdate\\b", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_alter("\\balter\\b", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_show("\\bshow\\b", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_grant("\\bgrant\\b", QRegularExpression::CaseInsensitiveOption);
+//    QRegularExpression regex_select("\\bselect\\s+\\S+\\s+from\\s+\\w+.*;", QRegularExpression::CaseInsensitiveOption);
+
+
+//     create_database( text);
+//     show_database( text);
+//     select_database( text);
+//     drop_database( text);
+//     use_database( text);
+     create_table( text);
+//     insert_table( text);
+//     delete_table( text);
+//     update_table( text);
+//     alter_table( text);
+//     select_from( text);
+//     singlecolumn_constraints( text);
+//     multicolumn_constraints( text);
+
+
+     return "";
+}
 
 
 
 
-
-
-
-
-
-
-
-
+ bool Parser::create_database(QString text)
+ {
+     QRegularExpression regex_createdatabase("\\bcreate\\s+database\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
     //create database dbname;
     QRegularExpressionMatch match_create = regex_createdatabase.match(text);
 
     if (match_create.hasMatch())
     {
+
         // Retrieve the matched QString
         QString matchedString = match_create.captured();
         //获取create database dbname三个分开的单词
@@ -72,19 +87,33 @@ QString Parser::parserfirst(QString text)
         this->db->createUserdb(dbname);
 
 
-        qDebug() << "Match found:" << matchedString;
+
     }
+    return true;
+ }
 
     //showdatabases;
+ bool  Parser::show_database(QString text)
+{
+     QRegularExpression regex_showdatabases("\\bshow\\s+databases;", QRegularExpression::CaseInsensitiveOption);
+
     QRegularExpressionMatch match_showdatabases = regex_showdatabases.match(text);
 
     if (match_showdatabases.hasMatch())
     {
          QString matchedString = match_showdatabases.captured();
-        qDebug() << "Match found:" << matchedString;
+
         db->showdbs();
     }
+     return true;
+ }
+
     //selectdatabase();
+ bool  Parser::select_database(QString text)
+ {
+
+     QRegularExpression regex_selectdatabase("\\bselect\\s+database\\(\\);", QRegularExpression::CaseInsensitiveOption);
+
     QRegularExpressionMatch match_selectdatabase = regex_selectdatabase.match(text);
 
     if (match_selectdatabase.hasMatch())
@@ -93,23 +122,34 @@ QString Parser::parserfirst(QString text)
         qDebug() << "Match found:" << matchedString;
        db->selectdatabase();
     }
+     return true;
+ }
     //use dbname;
+ bool  Parser::use_database(QString text)
+ {
+
+     QRegularExpression regex_use("\\buse\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
+
     QRegularExpressionMatch match_use = regex_use.match(text);
 
     if (match_use.hasMatch())
     {
 
         QString matchedString = match_use.captured();
-        qDebug() << "Match found:" << matchedString;
+
         //获取use dbname;分开的单词
         QStringList words = matchedString.split(QRegExp("\\s+"), QString::SkipEmptyParts);
         QString dbname = words.at(1);
         dbname.chop(1);
         db->usedb(dbname);
     }
+     return true;
 
-
+}
     //drop;
+ bool  Parser::drop_database(QString text)
+ {
+     QRegularExpression regex_drop("\\bdrop\\s+\\w+\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch match_drop = regex_drop.match(text);
     if (match_drop.hasMatch())
     {
@@ -139,9 +179,15 @@ QString Parser::parserfirst(QString text)
 
 
 
-        qDebug() << "Match found:" << matchedString;
-    }
 
+    }
+    return true;
+}
+
+
+ bool Parser::delete_table(QString text)
+{
+      QRegularExpression regex_delete("\\bdelete\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
     //delete;
     QRegularExpressionMatch match_delete = regex_delete.match(text);
     if (match_delete.hasMatch()) {
@@ -160,10 +206,14 @@ QString Parser::parserfirst(QString text)
 
         qDebug() << "Match found:" << matchedString;
     }
+ }
 
 
 
     //insert into t1 (sno,sname) values(12,22);
+ bool Parser::insert_table(QString text)
+ {
+      QRegularExpression regex_insertinto("\\bINSERT\\s+INTO\\s+\\w+\\s*\\([^\\)]+\\)\\s*VALUES\\s*\\([^\\)]+\\);", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch match_insertinto = regex_insertinto.match(text);
 
     if (match_insertinto.hasMatch())
@@ -211,14 +261,25 @@ QString Parser::parserfirst(QString text)
 
 
 
-
+ return true;
     }
+ }
     //createtable(a1 int,a2,int);
-    QRegularExpressionMatch match_createtable = regex_createtable.match(text);
-    if (match_createtable.hasMatch()) {
+    bool Parser::create_table(QString text)
+    {
+        QRegularExpression regex_createtable(
+            R"(\bCREATE\s+TABLE\s+(\w+)\s*\((.*?)\);)",
+            QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption
+        );
+
+     QRegularExpressionMatch match_createtable = regex_createtable.match(text);
+     if (match_createtable.hasMatch()) {
         QString tableName = match_createtable.captured(1);
         string tname = tableName.toStdString();
         QString columnDefinitions = match_createtable.captured(2);
+
+
+        qDebug() << "Table Name:" << tableName;
         // 通过逗号分割
         QRegularExpression regex("\\b[^,]+\\b");
         QRegularExpressionMatchIterator matchIterator = regex.globalMatch(columnDefinitions);
@@ -235,10 +296,7 @@ QString Parser::parserfirst(QString text)
             QString columnname = words.at(0);
             std::string col = columnname.toStdString();
             QString type = words.at(1);
-            //////////////////////////////////////
-            //a.push_back({ col,type::INT,2,constrain::NONE,false,"" });
-            // string tname = tableName.toStdString();
-////////////////////////////////////////////////////
+
 
             qDebug() << "Matched String:" << matchedString;
         }
@@ -246,6 +304,11 @@ QString Parser::parserfirst(QString text)
 
 
     }
+     return true;
+    }
+  bool Parser::select_from(QString text)
+  {
+      QRegularExpression regex_select("\\bselect\\s+\\S+\\s+from\\s+\\w+.*;", QRegularExpression::CaseInsensitiveOption);
 
     // select aas,sds,asf from table /where a = b;
     QRegularExpressionMatch match_select = regex_select.match(text);
@@ -285,12 +348,6 @@ QString Parser::parserfirst(QString text)
         }
 
 
-
-
-
-
-
-
         qDebug() << "Match found:" << matchedString;
     }
     else
@@ -300,4 +357,5 @@ QString Parser::parserfirst(QString text)
 
     return "";
 }
+
 
