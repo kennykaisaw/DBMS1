@@ -50,13 +50,13 @@ QString Parser::parserfirst(QString text)
 //     select_database( text);
 //     drop_database( text);
 //     use_database( text);
-     create_table( text);
+//     create_table( text);
 //     insert_table( text);
 //     delete_table( text);
 //     update_table( text);
 //     alter_table( text);
 //     select_from( text);
-//     singlecolumn_constraints( text);
+     singlecolumn_constraints( text);
 //     multicolumn_constraints( text);
 
 
@@ -275,7 +275,7 @@ QString Parser::parserfirst(QString text)
 //       ON UPDATE RESTRICT
 //       ON DELETE CASCADE
 // );
- void Parser::processColumnDefinition(const QString &columnDefinition) {
+QString Parser::processColumnDefinition(const QString &columnDefinition) {
      // 正则表达式匹配列定义，识别主键和外键
      QRegularExpression primaryKeyRegex(R"(\bPRIMARY\s+KEY\b)");
      QRegularExpression foreignKeyRegex(R"(\bREFERENCES\s+\w+\s*\(.*\))");
@@ -285,16 +285,18 @@ QString Parser::parserfirst(QString text)
      // 去掉主键定义
      if (primaryKeyRegex.match(processedColumn).hasMatch()) {
          processedColumn.remove(primaryKeyRegex);
-         qDebug() << "Column without PRIMARY KEY:" << processedColumn.trimmed();
+         qDebug() << "Column with PRIMARY KEY:" << processedColumn.trimmed();
      }
      // 去掉外键定义
      else if (foreignKeyRegex.match(processedColumn).hasMatch()) {
          processedColumn.remove(foreignKeyRegex);
-         qDebug() << "Column without FOREIGN KEY:" << processedColumn.trimmed();
+         qDebug() << "Column with FOREIGN KEY:" << processedColumn.trimmed();
      } else {
          qDebug() << "Regular Column:" << processedColumn.trimmed();
      }
+     return   processedColumn.trimmed();
  }
+
  bool Parser::create_table(QString text)
     {
      //
@@ -355,7 +357,24 @@ QString Parser::parserfirst(QString text)
          }
          //处理每一列
          for (const QString &column : columnsList) {
-            processColumnDefinition(column);
+            QString trimpriaryandforiegncolumn = processColumnDefinition(column);
+            // 正则表达式匹配列定义并捕获列名、数据类型和约束
+               QRegularExpression regex(R"((\w+)\s+(\w+.*?)(?:\s+(.*))?$)");
+
+               QRegularExpressionMatch match = regex.match(trimpriaryandforiegncolumn.trimmed());
+
+               if (match.hasMatch()) {
+                   QString columnName = match.captured(1).trimmed();
+                   QString columnType = match.captured(2).trimmed();
+                   QString constraints = match.captured(3).trimmed();
+
+
+                   qDebug() << "Column Name:" << columnName;
+                   qDebug() << "Column Type and Constraints:" << columnType;
+                   qDebug() << "Remaining Constraints:" << constraints;
+               } else {
+                   qDebug() << "Invalid column definition:" << trimpriaryandforiegncolumn.trimmed();
+               }
          }
      }
 
@@ -422,5 +441,48 @@ QString Parser::parserfirst(QString text)
 
     return "";
 }
+ string  Parser::singlecolumn_constraints(QString text)
+ {
+     string res = "";
+     // 使用正则表达式匹配or和and条件，并将它们分离开来
+        QRegularExpression regex_divide("\\b(or|and)\\b(?!.*\\bbetween\\b)", QRegularExpression::CaseInsensitiveOption);
+       //知道是or还是and分离
+        QRegularExpressionMatchIterator matchIterator = regex_divide.globalMatch(text);
+
+           int lastPosition = 0;
+           while (matchIterator.hasNext())
+           {
+               res.append("*");
+               QRegularExpressionMatch match = matchIterator.next();
+               QString separator = match.captured(1);
+              if(separator.toLower() == "and")
+              {
+                  res.append("A");
+              }
+              if(separator.toLower() == "or")
+              {
+                  res.append("O");
+              }
+           }
+
+           QString lastCondition = text.mid(lastPosition).trimmed();
+           res.append("*");
+//           qDebug() << "Condition:" << lastCondition << "Separator: None";
+       //通过and和or分离
+         QStringList conditions = text.split(regex_divide, QString::SkipEmptyParts);
+
+         res = to_string(conditions.size())+"\n" + res;
+        qDebug() << "Separated Conditions:";
+        for (const QString &cond : conditions)
+        {
+             QRegularExpression regex_opperand("\\b(=|>|>=|<=|\\w+)\\b", QRegularExpression::CaseInsensitiveOption);
+               QRegularExpressionMatch match = regex_opperand.match(cond.trimmed());
+                QString matchedopperand = match.captured(1);
+
+
+            qDebug() << cond.trimmed();
+        }
+        return res;
+ }
 
 
