@@ -23,7 +23,7 @@ public:
     bool select_from(QString text);
     string singlecolumn_constraints(QString text);
     string multicolumn_constraints(QString text);
-     QString processColumnDefinition(const QString &tableDefinition);
+     QString processColumnDefinition(const QString &tableDefinition, bool& isPrimaryKey, string& forignKeyName, string &forignKeyTable, string &default_content);
 public:
     Parser(DB *db);
     Parser();
