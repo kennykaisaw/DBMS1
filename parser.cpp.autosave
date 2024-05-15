@@ -195,12 +195,13 @@ QString Parser::parserfirst(QString text)
                       mode_d =Table::delete_mode::SELECT;
             }
 
-            rowname_d.push_back(tableName.toStdString());
+           
 
             qDebug() << "Table Name:" << tableName;
             qDebug() << "Conditions:" << whereClause;
             tablename = tableName.toStdString();
-            constrainMessage_d=multicolumn_constraints(whereClause);
+            rowname_d = multicolumn_constraints(whereClause).first;
+            constrainMessage_d=multicolumn_constraints(whereClause).second;
             operation_d = constrainMessage_d.back();
             constrainMessage_d.pop_back();
             Table c(tablename);
@@ -656,11 +657,11 @@ QString Parser::processColumnDefinition(const QString &columnDefinition, bool& i
             qDebug() << "WHERE Clause:" << whereClause;
         }
  }
-std::pair<vector<string>, vector<string>> Parser::multicolumn_constraints(QString text)
+pair<vector<string>, vector<string>> Parser::multicolumn_constraints(QString text)
   {
        vector<string> names_array;
        vector<string> cons_string_array ;
-       pair<vector<string>, std::string> pair;
+       pair<vector<string>, vector<string>> pair;
        //names_constraint_array
        string expression_res;
       // 使用正则表达式匹配or和and条件，并将它们分离开来
@@ -713,7 +714,7 @@ std::pair<vector<string>, vector<string>> Parser::multicolumn_constraints(QStrin
         // qDebug() <<QString::fromStdString(res);
       cons_string_array.push_back(expression_res);
       pair.first = names_array;
-         pair.second = cons_string_array;
-         return pair;
+     pair.second = names_array;
+     return pair;
   }
 
