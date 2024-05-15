@@ -33,19 +33,19 @@ QString Parser::parserfirst(QString text)
 
 
 
-//     create_database( text);
+ //    create_database( text);
 //     show_database( text);
 //     select_database( text);
 //     drop_database( text);
 //     use_database( text);
 //     create_table( text);
-     insert_table( text);
-//     delete_table( text);
+//     insert_table( text);
+     delete_table( text);
 //     update_table( text);
 //     alter_table( text);
 //     select_from( text);
  //    singlecolumn_constraints( text);
-//     multicolumn_constraints( text);
+ //    multicolumn_constraints( text);
 
 
      return "";
@@ -175,31 +175,22 @@ QString Parser::parserfirst(QString text)
 
  bool Parser::delete_table(QString text)
 {
-      QRegularExpression regex_delete("\\bdelete\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-    //delete;
-    QRegularExpressionMatch match_delete = regex_delete.match(text);
-    if (match_delete.hasMatch()) {
-        // Retrieve the matched QString
-        QString matchedString = match_delete.captured();
-        //获取create database dbname三个分开的单词
-        QStringList words = matchedString.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-        QString tablename = words.at(1);
-        //去掉分号
-        tablename.chop(1);
-        //调用相应函数
-        string tname = tablename.toStdString();
+     QRegularExpression regex("delete\\s+from\\s+(\\w+)\\s*where\\s+(.*);", QRegularExpression::CaseInsensitiveOption);
+        QRegularExpressionMatch match = regex.match(text);
+        if (match.hasMatch()) {
+            QString tableName = match.captured(1);
+            QString conditions = match.captured(2);
+            qDebug() << "Table Name:" << tableName;
+            qDebug() << "Conditions:" << conditions;
+        } else {
 
-
-
-
-        qDebug() << "Match found:" << matchedString;
-    }
+        }
     return true;
  }
 
 
 
-    //insert into t1 (sno,sname) values(12,22);
+    //insert into t1 (sno,sname) values('s1',22);
  bool Parser::insert_table(QString text)
  {
       QRegularExpression regex_insertinto("\\bINSERT\\s+INTO\\s+\\w+\\s*\\([^\\)]+\\)\\s*VALUES\\s*\\([^\\)]+\\);", QRegularExpression::CaseInsensitiveOption);
@@ -226,7 +217,7 @@ QString Parser::parserfirst(QString text)
             matchedText.remove(matchedText.length() - 1, 1);
 
             //
-            QRegularExpression regex("\\b(\\w+|'\\w+')\\b");
+            QRegularExpression regex("'([^']+)'|\\b\\d+\\b");
             QRegularExpressionMatchIterator matchIterator = regex.globalMatch(matchedText);
             while (matchIterator.hasNext()) {
                 QRegularExpressionMatch match = matchIterator.next();
@@ -609,4 +600,63 @@ QString Parser::processColumnDefinition(const QString &columnDefinition, bool& i
         return res;
  }
 
+ bool Parser::update_table(QString text)
+ {
+
+ }
+  string Parser::multicolumn_constraints(QString text)
+  {
+       vector<string> names_constraint_array;
+       vector<string> cons_string_array ;
+      string res = "";
+      // 使用正则表达式匹配or和and条件，并将它们分离开来
+      QRegularExpression regex_divide("\\b(or|and)\\b(?!.*\\bbetween\\b)", QRegularExpression::CaseInsensitiveOption);
+      //知道是or还是and分离
+      QRegularExpressionMatchIterator matchIterator = regex_divide.globalMatch(text);
+
+      int lastPosition = 0;
+      while (matchIterator.hasNext())
+      {
+          res.append("*");
+          QRegularExpressionMatch match = matchIterator.next();
+          QString separator = match.captured(1);
+          if(separator.toLower() == "and")
+          {
+              res.append("A");
+          }
+          if(separator.toLower() == "or")
+          {
+              res.append("O");
+          }
+      }
+
+      QString lastCondition = text.mid(lastPosition).trimmed();
+      res.append("*\n");
+      //           qDebug() << "Condition:" << lastCondition << "Separator: None";
+      //通过and和or分离
+      QStringList conditions = text.split(regex_divide, QString::SkipEmptyParts);
+
+      res = to_string(conditions.size())+"\n" + res;
+      qDebug() << "Separated Conditions:";
+      for (const QString &cond : conditions)
+      {
+          QRegularExpression regex_opperand("(\\w+)\\s*((.*)+)", QRegularExpression::CaseInsensitiveOption);
+          QRegularExpressionMatch match = regex_opperand.match(cond.trimmed());
+          QString columnname = match.captured(1);
+
+         names_constraint_array.push_back(columnname.toStdString());
+         QString singlecolumn = match.captured(2);
+         cons_string_array.push_back(singlecolumn_constraints(singlecolumn));
+
+         qDebug() << columnname;
+        //  qDebug() << QString::fromStdString(singlecolumn_constraints(singlecolumn));
+
+
+
+
+             qDebug() <<singlecolumn;
+         }
+        // qDebug() <<QString::fromStdString(res);
+         return res;
+  }
 
