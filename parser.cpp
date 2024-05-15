@@ -30,28 +30,16 @@ Parser::Parser()
 QString Parser::parserfirst(QString text)
 {
 
-//    QRegularExpression regex_createdatabase("\\bcreate\\s+database\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_showdatabases("\\bshow\\s+databases;", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_selectdatabase("\\bselect\\s+database\\(\\);", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_use("\\buse\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_drop("\\bdrop\\s+\\w+\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_delete("\\bdelete\\s+\\w+;", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_insertinto("\\bINSERT\\s+INTO\\s+\\w+\\s*\\([^\\)]+\\)\\s*VALUES\\s*\\([^\\)]+\\);", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_createtable("\\bCREATE\\s+TABLE\\s+(\\w+)\\s*\\(([^;]+)\\);", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_update("\\bupdate\\b", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_alter("\\balter\\b", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_show("\\bshow\\b", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_grant("\\bgrant\\b", QRegularExpression::CaseInsensitiveOption);
-//    QRegularExpression regex_select("\\bselect\\s+\\S+\\s+from\\s+\\w+.*;", QRegularExpression::CaseInsensitiveOption);
 
 
-     create_database( text);
-     show_database( text);
-     select_database( text);
-     drop_database( text);
-     use_database( text);
-     create_table( text);
-//     insert_table( text);
+
+//     create_database( text);
+//     show_database( text);
+//     select_database( text);
+//     drop_database( text);
+//     use_database( text);
+//     create_table( text);
+     insert_table( text);
 //     delete_table( text);
 //     update_table( text);
 //     alter_table( text);
@@ -206,6 +194,7 @@ QString Parser::parserfirst(QString text)
 
         qDebug() << "Match found:" << matchedString;
     }
+    return true;
  }
 
 
@@ -237,11 +226,12 @@ QString Parser::parserfirst(QString text)
             matchedText.remove(matchedText.length() - 1, 1);
 
             //
-            QRegularExpression regex("\\b\\w+\\b");
+            QRegularExpression regex("\\b(\\w+|'\\w+')\\b");
             QRegularExpressionMatchIterator matchIterator = regex.globalMatch(matchedText);
             while (matchIterator.hasNext()) {
                 QRegularExpressionMatch match = matchIterator.next();
                 QString word = match.captured(0);
+                 qDebug()<<"value:"<<word;
                 attribute[i].append(word);
                 attribute[i].append("|");
             }
