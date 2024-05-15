@@ -264,49 +264,114 @@ QString Parser::parserfirst(QString text)
  return true;
     }
  }
-    //createtable(a1 int,a2,int);
-    bool Parser::create_table(QString text)
+// CREATE TABLE checklists(
+//   id INT,
+//   task_id INT,
+//   title VARCHAR(255) NOT NULL,
+//   is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+//   PRIMARY KEY (id, task_id),
+//   FOREIGN KEY (task_id)
+//       REFERENCES tasks (id)
+//       ON UPDATE RESTRICT
+//       ON DELETE CASCADE
+// );
+ void Parser::processColumnDefinition(const QString &columnDefinition) {
+     // 正则表达式匹配列定义，识别主键和外键
+     QRegularExpression primaryKeyRegex(R"(\bPRIMARY\s+KEY\b)");
+     QRegularExpression foreignKeyRegex(R"(\bREFERENCES\s+\w+\s*\(.*\))");
+
+     QString processedColumn = columnDefinition.trimmed();
+
+     // 去掉主键定义
+     if (primaryKeyRegex.match(processedColumn).hasMatch()) {
+         processedColumn.remove(primaryKeyRegex);
+         qDebug() << "Column without PRIMARY KEY:" << processedColumn.trimmed();
+     }
+     // 去掉外键定义
+     else if (foreignKeyRegex.match(processedColumn).hasMatch()) {
+         processedColumn.remove(foreignKeyRegex);
+         qDebug() << "Column without FOREIGN KEY:" << processedColumn.trimmed();
+     } else {
+         qDebug() << "Regular Column:" << processedColumn.trimmed();
+     }
+ }
+ bool Parser::create_table(QString text)
     {
+     //
         QRegularExpression regex_createtable(
             R"(\bCREATE\s+TABLE\s+(\w+)\s*\((.*?)\);)",
             QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption
         );
 
      QRegularExpressionMatch match_createtable = regex_createtable.match(text);
-     if (match_createtable.hasMatch()) {
-        QString tableName = match_createtable.captured(1);
-        string tname = tableName.toStdString();
-        QString columnDefinitions = match_createtable.captured(2);
+     if (match_createtable.hasMatch())
+     {
+         QString tableName = match_createtable.captured(1);
+         string tname = tableName.toStdString();
+         //括号内容
+         QString columnsAndConstraints = match_createtable.captured(2);
 
 
-        qDebug() << "Table Name:" << tableName;
-        // 通过逗号分割
-        QRegularExpression regex("\\b[^,]+\\b");
-        QRegularExpressionMatchIterator matchIterator = regex.globalMatch(columnDefinitions);
-        //储存列
-        vector<tableRows>a;
+         qDebug() << "Table Name:" << tableName;
+         qDebug() << "column:" << columnsAndConstraints;
+         // 通过逗号分割括号内每行内容
+         // 分离列定义、主键和外键
+         QRegularExpression primaryKeyRegex(R"(\bPRIMARY\s+KEY\s*\(([^)]+)\))");
+         QRegularExpression foreignKeyRegex(R"(\bFOREIGN\s+KEY\s*\(([^)]+)\)\s*REFERENCES\s+(\w+)\s*\(([^)]+)\)(?:\s*ON\s+UPDATE\s+(\w+)\s*ON\s+DELETE\s+(\w+))?)");
 
-        while (matchIterator.hasNext())
-        {
-            QRegularExpressionMatch match = matchIterator.next();
-            QString matchedString = match.captured(0);
-            //get column name,type,constraint
-            QStringList words = matchedString.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+         // 提取主键定义
+         QRegularExpressionMatch primaryKeyMatch = primaryKeyRegex.match(columnsAndConstraints);
+         QString primaryKey;
+         if (primaryKeyMatch.hasMatch()) {
+             primaryKey = primaryKeyMatch.captured(0);
+             columnsAndConstraints.remove(primaryKey);
+         }
 
-            QString columnname = words.at(0);
-            std::string col = columnname.toStdString();
-            QString type = words.at(1);
+         // 提取外键定义
+         QStringList foreignKeys;
+         QRegularExpressionMatchIterator foreignKeyIterator = foreignKeyRegex.globalMatch(columnsAndConstraints);
+         while (foreignKeyIterator.hasNext()) {
+             QRegularExpressionMatch foreignKeyMatch = foreignKeyIterator.next();
+             QString foreignKey = foreignKeyMatch.captured(0);
+             foreignKeys.append(foreignKey);
+             columnsAndConstraints.remove(foreignKey);
+         }
+
+         // 清理和分离列定义,通过空白格和逗号和空白格分离
+         QStringList columnsList = columnsAndConstraints.split(QRegularExpression("\\s*,\\s*"), Qt::SkipEmptyParts);
+
+         qDebug() << "Columns and Constraints:";
+         for (const QString &column : columnsList) {
+             qDebug() << column.trimmed();
+         }
+
+         if (!primaryKey.isEmpty()) {
+             qDebug() << "Primary Key:" << primaryKey.trimmed();
+         }
+
+         qDebug() << "Foreign Keys:";
+         for (const QString &foreignKey : foreignKeys) {
+             qDebug() << foreignKey.trimmed();
+         }
+         //处理每一列
+         for (const QString &column : columnsList) {
+            processColumnDefinition(column);
+         }
+     }
 
 
-            qDebug() << "Matched String:" << matchedString;
-        }
+     else {
+         qDebug() << "No match found.";
+
+     }
 
 
 
-    }
+
+
      return true;
     }
-  bool Parser::select_from(QString text)
+ bool Parser::select_from(QString text)
   {
       QRegularExpression regex_select("\\bselect\\s+\\S+\\s+from\\s+\\w+.*;", QRegularExpression::CaseInsensitiveOption);
 
