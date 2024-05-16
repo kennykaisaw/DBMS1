@@ -1,10 +1,10 @@
-#include "autorization.h"
+#include "authorization.h"
 
-autorization::autorization()
+authorization::authorization()
 {
 
 }
-bool autorization::createfolder(QString address_folder)
+bool authorization::createfolder(QString address_folder)
 {
      QDir dir;
     if (!dir.exists(address_folder)) {
@@ -22,7 +22,7 @@ bool autorization::createfolder(QString address_folder)
       }
 }
 //默认在authorization下建立
-bool autorization::createfile(string filename)
+bool authorization::createfile(string filename)
 {
     string s_address_authorization = address_authorization.toStdString();
     //创建文件
@@ -40,7 +40,7 @@ bool autorization::createfile(string filename)
     return true;
 }
 
- bool autorization::readfromlogin()
+ bool authorization::readfromlogin()
  {
      string s_address_authorization = address_authorization.toStdString();
      ifstream file_login(s_address_authorization+"\\login.bin",ios::binary);
@@ -57,7 +57,24 @@ bool autorization::createfile(string filename)
      }
      return true;
  }
-bool autorization::initial()
+ bool authorization::open_usertable(string username)
+ {
+      string s_address_authorization = address_authorization.toStdString();
+     ifstream file_user(s_address_authorization+"\\"+username+".bin",ios::binary);
+     //读取账号密码
+     if (file_user.is_open())
+     {
+         string name;
+         string password;
+         while (file_user>>name>>password)
+         {
+             login_map.insert({name,password});
+         }
+         file_user.close();
+     }
+     return true;
+ }
+bool authorization::initial()
 {
      //建立authorization
     address_authorization  =   this->SYSTEMfolderPath +QDir::separator() + "authorization";
@@ -79,11 +96,11 @@ bool autorization::initial()
     }
 
     //没写
-    grantpermissoin();
+    grantpermission("all","Ruanko","root");
 
     return true;
 }
-bool autorization::user_register(string name,string password)
+bool authorization::user_register(string name,string password)
 {
     //login里添加信息
     string s_address_authorization = address_authorization.toStdString();
@@ -96,7 +113,7 @@ bool autorization::user_register(string name,string password)
     }
     return true;
 }
-bool autorization::user_login(string name,string password)
+bool authorization::user_login(string name,string password)
 {
     //读登录表
     readfromlogin();
@@ -120,8 +137,37 @@ bool autorization::user_login(string name,string password)
         return false;
 
 }
-bool autorization::grantpermissoin()
+bool authorization::grantpermission(string permission_name,string dbname,string user)
 {
+    string s_address_authorization = address_authorization.toStdString();
+    ofstream file_A(s_address_authorization+"\\"+user+".bin",ios::binary| std::ios::out);
+    if (file_A.is_open())
+    {
+
+        file_A<<dbname<<"."<<permission_name<<endl;
+        file_A.close();
+    }
     return true;
 }
+ bool authorization::search_permission(string permission_name,string dbname)
+ {
+     string s_address_authorization = address_authorization.toStdString();
+    ifstream file_user(s_address_authorization+"\\"+user_name+".bin",ios::binary);
+    string db_permission= dbname+"."+permission_name;
+    //读取权限
+    if (file_user.is_open())
+    {
+        string have_permission;
+
+        while (file_user>>have_permission)
+        {
+            if(db_permission == have_permission||have_permission=="Ruanko.all")
+            {
+                return true;
+            }
+        }
+        file_user.close();
+    }
+     return false;
+ }
 

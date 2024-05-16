@@ -74,6 +74,7 @@ bool DB::createUserdb(QString USERdbName)
      if (dir.exists(SYSTEMfolderPath+ QDir::separator()+db))
      {
          this->CurrentDbPath = SYSTEMfolderPath+ QDir::separator()+db;
+         db_name = db.toStdString();
          qDebug() << "use"<<db<<"successfully";
          //将左斜杠换右斜杠
           CurrentDbPath  = CurrentDbPath.replace("/", "\\");

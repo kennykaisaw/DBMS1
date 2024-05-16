@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QDebug>
-
+#include"authorization.h"
 class DB
 {
 public:
@@ -18,6 +18,10 @@ public:
     QString SYSTEMfolderPath="D:/program/QT/DBMS/Ruanko";
     QString CurrentDbPath="D:\\program\\QT\\DBMS\\Ruanko" ;
     QStringList dbs;
+    //当前用户
+    string user_name;
+    string db_name;
+
 
 };
 
