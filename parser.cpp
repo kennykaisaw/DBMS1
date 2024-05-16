@@ -27,23 +27,78 @@ bool Parser::parsermulty(QString text)
     return true;
 
 }
+ bool Parser::parserAndCheck(QString text)
+ {
+     QString permission_type = parserfirst(text);
+     authorization au;
+     if(au.search_permission(permission_type.toStdString(),db->db_name)==false)
+     {
+         //撤回
+         cerr<<"无权限"<<endl;
+         return false;
+     }
+     return true;
+ }
 QString Parser::parserfirst(QString text)
 {
 
 
-
+    if(create_database( text))
+    {
+         return "create_database";
+    }
+    if(show_database( text))
+    {
+         return "show_database";
+    }
+    if(select_database( text))
+    {
+         return "select_database";
+    }
+    if(drop_database( text))
+    {
+         return "drop_database";
+    }
+    if(use_database( text))
+    {
+         return "use_database";
+    }
+    if(create_table( text))
+    {
+         return "create_table";
+    }
+    if(insert_table( text))
+    {
+         return "insert_table";
+    }
+    if(delete_table( text))
+    {
+         return "delete_table";
+    }
+    if(update_table( text))
+    {
+         return "update_table";
+    }
+    if(alter_table( text))
+    {
+         return "alter_table";
+    }
+    if(select_from( text))
+    {
+         return "select_from";
+    }
 
     //    create_database( text);
     //     show_database( text);
     //     select_database( text);
-   // drop_database( text);
+        // drop_database( text);
     //     use_database( text);
     //     create_table( text);
     //     insert_table( text);
     //     delete_table( text);
     //     update_table( text);
     //     alter_table( text);
-         select_from( text);
+    //select_from( text);
     //    singlecolumn_constraints( text);
     //    multicolumn_constraints( text);
 
@@ -618,8 +673,8 @@ bool Parser::alter_table(QString text)
             for (const QString &column : columns)
             {
 
-                QRegularExpression regex_primarykey(R"((\w+)\s+constraint\s+primary\s+key)", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
-                QRegularExpression regex_foreignkey(R"(constraint\s+foreign key\s*\(\w+\)\s*references\s*\w+\(\w+\))\s*(.*?);)", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
+                QRegularExpression regex_primarykey(R"(constraint\s+(\w+)\s+primary\s*key)", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
+                QRegularExpression regex_foreignkey(R"(constraint\s+(\w+)\s+foreign\s*key)", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
                 // QRegularExpression regex_constraint(R"((\w+)\s+(constraint\s+primary\s+key|constraint\s+foreign\s+key\s*references\s*\w+\(\w+\)|\s+(\w+)\s+(\w+))\s*(.*?))", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
                 QRegularExpression regex_column(R"(column\s+(\w+)\s+)", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
                 QRegularExpressionMatch regex_primarykey_match = regex_primarykey.match(column);
@@ -664,7 +719,7 @@ bool Parser::alter_table(QString text)
             {
 
 
-                QRegularExpression regex_primarykey(R"((\w+)\s+constraint\s+primary\s+key)", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
+                QRegularExpression regex_primarykey(R"(constraint\s(\w+)primary\s*key)", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
                 QRegularExpression regex_foreignkey(R"(constraint\s+foreign key\s*\(\w+\)\s*references\s*\w+\(\w+\))\s*(.*?);)", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
                 // QRegularExpression regex_constraint(R"((\w+)\s+(constraint\s+primary\s+key|constraint\s+foreign\s+key\s*references\s*\w+\(\w+\)|\s+(\w+)\s+(\w+))\s*(.*?))", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
                 QRegularExpression regex_column(R"(column\s+(\w+))", QRegularExpression::CaseInsensitiveOption| QRegularExpression::DotMatchesEverythingOption);
@@ -762,7 +817,7 @@ bool Parser::update_table(QString text)
         // 解析每一行，提取列名和对应的值
         foreach (const QString &line, set_lines)
         {
-            QRegularExpression regex("\\b(\\w+)\\s*=\\s*'([^']*)'\\s*");
+            QRegularExpression regex("\\b(\\w+)\\s*=\\s*('([^']*)'\\s*");
             QRegularExpressionMatch match = regex.match(line);
             if (match.hasMatch())
             {
@@ -840,4 +895,45 @@ pair<vector<string>, vector<string>> Parser::multicolumn_constraints(QString tex
     pair.second = names_array;
     return pair;
 }
+bool Parser::login(QString  name,QString password)
+{
+    authorization au;
+    if(au.user_login(name.toStdString(),password.toStdString()))
+    {
+        user = name.toStdString();
+        return true;
+    }
+     return false;
+}
+ bool Parser::register_user(QString  name,QString password)
+ {
+     authorization au;
+     if(au.user_register(name.toStdString(),password.toStdString()))
+     {
+      return true;
+     }
+      return false;
+ }
+ bool Parser::grant(QString text)
+ {
+     QRegularExpression regex_grant("\\bgrant\\s+(\\w+)\\s+on\\s+(\\w+)\\s+to\\s+(\\w+)\\s*;", QRegularExpression::CaseInsensitiveOption);
+
+     QRegularExpressionMatch match_grant = regex_grant.match(text);
+
+     if (match_grant.hasMatch())
+     {
+
+        QString permission = match_grant.captured(1);
+        QString database = match_grant.captured(2);
+        QString user = match_grant.captured(3);
+
+        authorization au;
+        au.grantpermission(permission.toStdString(),database.toStdString(),user.toStdString());
+
+         return true;
+
+
+     }
+     return false;
+ }
 
