@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QRegularExpression>
 #include <QRegularExpressionMatchIterator>
-
+#include <utility>
 #include"db.h"
 #include"table.h"
 
@@ -22,7 +22,8 @@ public:
     bool alter_table(QString text);
     bool select_from(QString text);
     string singlecolumn_constraints(QString text);
-    string multicolumn_constraints(QString text);
+
+    pair<vector<string>, vector<string>> multicolumn_constraints(QString text);
      QString processColumnDefinition(const QString &tableDefinition, bool& isPrimaryKey, string& forignKeyName, string &forignKeyTable, string &default_content);
 public:
     Parser(DB *db);
